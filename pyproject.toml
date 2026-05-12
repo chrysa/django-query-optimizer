@@ -66,6 +66,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 DJANGO_SETTINGS_MODULE = "tests.settings"
 addopts = "--cov=django_query_optimizer --cov-report=xml --cov-report=term-missing --cov-fail-under=85"
 
