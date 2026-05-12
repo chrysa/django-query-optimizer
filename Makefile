@@ -5,99 +5,91 @@ endif
 
 # ─── Variables ────────────────────────────────────────────────────────────────
 PROJECT_NAME ?= django-query-optimizer
-PYTHON       ?= python3
-PIP          ?= pip
 PACKAGE_DIR   = django_query_optimizer
 SRC_DIR       = src/$(PACKAGE_DIR)
+TESTS_DIR     = tests
+
+DC      := docker compose
+DC_RUN  := $(DC) run --rm
 
 .DEFAULT_GOAL := help
 
-.PHONY: $(shell grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | cut -d":" -f1 | tr "\n" " ")
+.PHONY: help install install-dev pre-commit pre-commit-update \
+        lint format format-check typecheck lint-all \
+        test test-fast \
+        build build-cache \
+        docker-up docker-down docker-clean \
+        changelog clean
 
-help: ## Display this help message
-	@echo "==================================================================="
-	@echo "  $(PROJECT_NAME)"
-	@echo "==================================================================="
-	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
-	@echo ""
-	@echo "==================================================================="
+help: ## Show available targets
+	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) \
+		| awk 'BEGIN {FS = ":.*?##"}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
 
 # ─── Installation ─────────────────────────────────────────────────────────────
 
-install: ## Install package dependencies
-	$(PIP) install -e "."
+install: ## Install package dependencies (local)
+	pip install -e "."
 
-install-dev: ## Install package + dev dependencies
-	$(PIP) install -e ".[dev,postgres,drf]"
-
-install-pre-commit: ## Install and configure git pre-commit hooks
-	$(PIP) install --quiet pre-commit
-	pre-commit install
-	pre-commit autoupdate --bleeding-edge
+install-dev: ## Install package + dev dependencies (local)
+	pip install -e ".[dev,postgres,drf]"
 
 # ─── Quality ──────────────────────────────────────────────────────────────────
 
-lint: ## Run ruff linting (via Docker)
-	docker compose run --rm lint
+lint: ## Run ruff check (via Docker)
+	$(DC_RUN) lint
 
-format: ## Run ruff formatter
-	docker compose run --rm lint sh -c "ruff format $(SRC_DIR)"
+format: ## Run ruff format (via Docker)
+	$(DC_RUN) lint sh -c "ruff format $(SRC_DIR)"
 
-format-check: ## Check ruff formatting (no changes)
-	docker compose run --rm lint sh -c "ruff format --check $(SRC_DIR)"
+format-check: ## Check ruff formatting without changes (via Docker)
+	$(DC_RUN) lint sh -c "ruff format --check $(SRC_DIR)"
 
 typecheck: ## Run mypy type checking (via Docker)
-	docker compose run --rm lint sh -c "mypy $(SRC_DIR)"
+	$(DC_RUN) lint sh -c "mypy $(SRC_DIR)"
 
-pre-commit: ## Run pre-commit on all files
+lint-all: lint typecheck ## Run lint + typecheck
+
+pre-commit: ## Run pre-commit hooks on all files
 	pre-commit run --all-files
+
+pre-commit-update: ## Update pre-commit hooks to latest versions
+	pre-commit autoupdate --bleeding-edge
 
 # ─── Tests ────────────────────────────────────────────────────────────────────
 
-test: ## Run tests (via Docker)
-	$(MAKE) docker-test
+test: ## Run tests with coverage (via Docker)
+	$(DC_RUN) test
 
-test-cov: ## Run tests with coverage report (via Docker)
-	$(MAKE) docker-test
+test-fast: ## Run tests without coverage (fast, via Docker)
+	$(DC_RUN) test pytest $(TESTS_DIR) -v --no-cov
 
-# ─── Docker ───────────────────────────────────────────────────────────────────
+# ─── Build ────────────────────────────────────────────────────────────────────
 
-docker-build: ## Build all Docker stages
-	docker compose build
+build: ## Build Docker images (no cache)
+	$(DC) build --no-cache
 
-docker-up: ## Start services with Docker Compose
-	docker compose up -d
+build-cache: ## Build Docker images (with cache)
+	$(DC) build
+
+# ─── Docker helpers ───────────────────────────────────────────────────────────
+
+docker-up: ## Start services (detached)
+	$(DC) up -d
 
 docker-down: ## Stop services
-	docker compose down
+	$(DC) down
 
-docker-test: ## Run tests inside Docker container
-	docker compose run --rm test
+docker-clean: ## Remove images, volumes, orphan containers
+	$(DC) down --rmi local --volumes --remove-orphans
 
-docker-lint: ## Run lint + type-check inside Docker container
-	docker compose run --rm lint
-
-docker-clean: ## Remove Docker images and containers for this project
-	docker compose down --rmi local --volumes --remove-orphans
-
-# ─── Build & Release ──────────────────────────────────────────────────────────
-
-build: ## Build Python package
-	$(MAKE) docker-build
+# ─── Release ──────────────────────────────────────────────────────────────────
 
 changelog: ## Generate CHANGELOG.md via git-cliff
 	git-cliff -o CHANGELOG.md
 
 # ─── Cleanup ──────────────────────────────────────────────────────────────────
 
-clean: ## Clean build artifacts
-	find . -type f -name "*.pyc" -delete
+clean: ## Remove build artifacts and caches
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	rm -rf .pytest_cache .mypy_cache .ruff_cache dist build *.egg-info src/*.egg-info
-
-# ─── Compat aliases ───────────────────────────────────────────────────────────
-
-dev: install-dev ## Setup development environment
-type-check: typecheck ## Legacy alias
+	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
+	rm -rf .pytest_cache .mypy_cache .ruff_cache dist build $(REPORTS_DIR)
