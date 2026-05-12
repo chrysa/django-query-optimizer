@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Final
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     """Severity level of a detected ORM issue."""
 
     CRITICAL = "critical"
