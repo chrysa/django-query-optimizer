@@ -60,8 +60,12 @@ pre-commit-update: ## Update pre-commit hooks to latest versions
 test: ## Run tests with coverage (via Docker)
 	$(DC_RUN) test
 
+docker-test: ## Build and run tests via Docker (CI target)
+	$(DC) build test
+	$(DC_RUN) test
+
 test-fast: ## Run tests without coverage (fast, via Docker)
-	$(DC_RUN) test pytest $(TESTS_DIR) -v --no-cov
+	$(DC_RUN) test sh -c "pytest $(TESTS_DIR) -v"
 
 # ─── Build ────────────────────────────────────────────────────────────────────
 
