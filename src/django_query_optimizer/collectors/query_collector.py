@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from types import TracebackType
 from typing import Final
 
+from django.db import connection
+
 _REGISTRY_LOCK: Final[threading.Lock] = threading.Lock()
 _REGISTERED: bool = False
 
@@ -41,8 +43,6 @@ class QueryCollector:
     queries: list[CapturedQuery] = field(default_factory=list)
 
     def __enter__(self) -> QueryCollector:
-        from django.db import connection
-
         connection.execute_wrappers.append(self._capture)
         return self
 
@@ -52,8 +52,6 @@ class QueryCollector:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        from django.db import connection
-
         if self._capture in connection.execute_wrappers:
             connection.execute_wrappers.remove(self._capture)
 
