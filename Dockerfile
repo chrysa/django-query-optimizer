@@ -21,15 +21,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir ".[dev,postgres,drf]"
+RUN pip install --no-cache-dir -e ".[dev,postgres,drf]"
 
 COPY tests/ ./tests/
 
-CMD ["pytest", "tests", "-v", \
-    "--cov=django_query_optimizer", \
-    "--cov-report=xml:/app/coverage.xml", \
-    "--cov-report=term-missing", \
-    "--cov-fail-under=85"]
+CMD ["sh", "-c", "coverage run -m pytest && coverage xml && coverage report --fail-under=85"]
 
 # ── Stage 3: lint — ruff + mypy quality checks ────────────────────────────────
 FROM test AS lint

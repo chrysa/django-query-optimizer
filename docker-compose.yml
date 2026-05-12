@@ -16,5 +16,3 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-    volumes:
-      - ./coverage.xml:/app/coverage.xml
