@@ -1,0 +1,115 @@
+---
+name: CI
+
+on:
+    pull_request:
+        branches:
+            - main
+    push:
+        branches:
+            - main
+            - "feat/**"
+            - "fix/**"
+            - "chore/**"
+            - "ci/**"
+            - "release/**"
+    workflow_dispatch:
+
+permissions:
+    checks: write
+    contents: read
+    pull-requests: write
+    statuses: write
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    config:
+        name: Build matrix config
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        outputs:
+            python-versions: ${{ steps.matrix.outputs.python-versions }}
+            latest-python: ${{ steps.matrix.outputs.latest-python }}
+        steps:
+            - id: matrix
+              shell: bash
+              run: |
+                  echo 'python-versions=["3.14"]' >> "$GITHUB_OUTPUT"
+                  echo 'latest-python=3.14' >> "$GITHUB_OUTPUT"
+
+    lint:
+        name: Ruff + Mypy
+        needs: config
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.14"
+                  cache: pip
+
+            - name: Install dev dependencies
+              run: pip install -e ".[dev,postgres,drf]"
+
+            - name: Ruff lint
+              run: ruff check src/django_query_optimizer
+
+            - name: Ruff format check
+              run: ruff format --check src/django_query_optimizer
+
+            - name: Mypy
+              run: mypy src/django_query_optimizer
+              continue-on-error: true
+
+    test:
+        name: Tests (Python ${{ matrix.python-version }})
+        needs: config
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        strategy:
+            fail-fast: false
+            matrix:
+                python-version: ${{ fromJson(needs.config.outputs.python-versions) }}
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v5
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  cache: pip
+
+            - name: Install dev dependencies
+              run: pip install -e ".[dev,postgres,drf]"
+
+            - name: Run tests
+              run: |
+                  pytest tests -v \
+                    --cov=django_query_optimizer \
+                    --cov-report=xml \
+                    --cov-report=term-missing \
+                    --cov-fail-under=85
+
+            - name: Upload coverage
+              if: matrix.python-version == needs.config.outputs.latest-python
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage-xml
+                  path: coverage.xml
+
+    docker-test:
+        name: Docker test
+        needs: [lint, test]
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build and run tests via Docker
+              run: make docker-test

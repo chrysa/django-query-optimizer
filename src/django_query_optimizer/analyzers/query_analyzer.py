@@ -1,0 +1,77 @@
+"""Query analyzer — detects ORM issues in a list of CapturedQuery objects."""
+
+from __future__ import annotations
+
+from collections import Counter
+
+from django_query_optimizer.collectors.query_collector import CapturedQuery
+from django_query_optimizer.recommendations.base import ORMRecommendation, Severity
+
+# Threshold constants
+SLOW_QUERY_THRESHOLD_MS: float = 100.0
+DUPLICATE_MIN_COUNT: int = 2
+
+
+class QueryAnalyzer:
+    """Analyze a list of :class:`~django_query_optimizer.collectors.CapturedQuery`
+    objects and produce :class:`~django_query_optimizer.recommendations.ORMRecommendation`
+    instances.
+
+    Example::
+
+        with QueryCollector() as collector:
+            list(Order.objects.all())
+        analyzer = QueryAnalyzer(collector.queries)
+        for rec in analyzer.analyze():
+            print(rec.severity, rec.message)
+    """
+
+    def __init__(self, queries: list[CapturedQuery]) -> None:
+        self._queries = queries
+
+    def analyze(self) -> list[ORMRecommendation]:
+        """Run all detectors and return sorted recommendations (most severe first)."""
+        recommendations: list[ORMRecommendation] = []
+        recommendations.extend(self._detect_slow_queries())
+        recommendations.extend(self._detect_duplicate_queries())
+        return sorted(recommendations)
+
+    # ── Detectors ─────────────────────────────────────────────────────────────
+
+    def _detect_slow_queries(self) -> list[ORMRecommendation]:
+        """Flag queries that exceed the slow-query threshold."""
+        results: list[ORMRecommendation] = []
+        for query in self._queries:
+            if query.duration_ms >= SLOW_QUERY_THRESHOLD_MS:
+                results.append(
+                    ORMRecommendation(
+                        issue_type="slow_query",
+                        severity=Severity.HIGH,
+                        message=(f"Query took {query.duration_ms:.1f} ms (threshold: {SLOW_QUERY_THRESHOLD_MS} ms)"),
+                        suggestion=(
+                            "Consider adding a database index, using only() / values(), or caching the result."
+                        ),
+                        python_file=query.python_file,
+                        python_line=query.python_line,
+                    )
+                )
+        return results
+
+    def _detect_duplicate_queries(self) -> list[ORMRecommendation]:
+        """Detect queries whose SQL is executed more than once."""
+        results: list[ORMRecommendation] = []
+        counts = Counter(q.sql for q in self._queries)
+        for sql, count in counts.items():
+            if count >= DUPLICATE_MIN_COUNT:
+                results.append(
+                    ORMRecommendation(
+                        issue_type="duplicate_query",
+                        severity=Severity.MEDIUM,
+                        message=f"Query executed {count} times: {sql[:120]}",
+                        suggestion=(
+                            "Cache the queryset result, use select_related() / "
+                            "prefetch_related(), or restructure the loop."
+                        ),
+                    )
+                )
+        return results

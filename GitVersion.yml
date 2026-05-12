@@ -1,0 +1,25 @@
+branches:
+  feature:
+    increment: Minor
+    regex: ^feat[/-].*$
+    source_branches:
+    - main
+    tag: alpha
+  fix:
+    increment: Patch
+    regex: ^fix[/-].*$
+    source_branches:
+    - main
+    tag: beta
+  main:
+    increment: Patch
+    prevent_increment_of_merged_branch_version: false
+    regex: ^main$
+    tag: ''
+  release:
+    increment: Minor
+    regex: ^release[/-].*$
+    source_branches:
+    - main
+    tag: rc
+mode: ContinuousDeployment
