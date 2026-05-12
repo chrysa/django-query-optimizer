@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import Generator
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from django_query_optimizer.collectors.query_collector import QueryCollector
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -27,7 +31,7 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 @pytest.fixture()
-def query_collector() -> Generator[QueryCollector]:  # type: ignore[name-defined]  # noqa: F821
+def query_collector() -> Generator[QueryCollector]:
     """Pytest fixture: return a fresh QueryCollector scoped to the test."""
     from django_query_optimizer.collectors.query_collector import QueryCollector
 
