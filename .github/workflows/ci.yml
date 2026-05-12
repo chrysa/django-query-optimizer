@@ -3,8 +3,7 @@ name: CI
 
 on:
     pull_request:
-        branches:
-            - main
+        branches: [main]
     push:
         branches:
             - main
@@ -12,7 +11,6 @@ on:
             - "fix/**"
             - "chore/**"
             - "ci/**"
-            - "release/**"
     workflow_dispatch:
 
 permissions:
@@ -26,90 +24,67 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    config:
-        name: Build matrix config
-        runs-on: ubuntu-latest
-        timeout-minutes: 5
-        outputs:
-            python-versions: ${{ steps.matrix.outputs.python-versions }}
-            latest-python: ${{ steps.matrix.outputs.latest-python }}
-        steps:
-            - id: matrix
-              shell: bash
-              run: |
-                  echo 'python-versions=["3.14"]' >> "$GITHUB_OUTPUT"
-                  echo 'latest-python=3.14' >> "$GITHUB_OUTPUT"
-
     lint:
         name: Ruff + Mypy
-        needs: config
         runs-on: ubuntu-latest
         timeout-minutes: 15
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
 
-            - name: Set up Python
-              uses: actions/setup-python@v5
+            - name: Setup environment
+              uses: chrysa/github-actions/tool-setup@v1
               with:
                   python-version: "3.14"
-                  cache: pip
+                  extras: "dev,postgres,drf"
 
-            - name: Install dev dependencies
-              run: pip install -e ".[dev,postgres,drf]"
+            - name: Ruff checks
+              uses: chrysa/github-actions/ruff-check@v1
+              with:
+                  python-version: "3.14"
+                  latest-python: "3.14"
+                  sources: "src/django_query_optimizer tests"
 
-            - name: Ruff lint
-              run: ruff check src/django_query_optimizer
-
-            - name: Ruff format check
-              run: ruff format --check src/django_query_optimizer
-
-            - name: Mypy
-              run: mypy src/django_query_optimizer
-              continue-on-error: true
+            - name: Mypy checks
+              uses: chrysa/github-actions/mypy-check@v1
+              with:
+                  python-version: "3.14"
+                  latest-python: "3.14"
+                  config-file: "pyproject.toml"
+                  sources: "src/django_query_optimizer"
 
     test:
-        name: Tests (Python ${{ matrix.python-version }})
-        needs: config
-        runs-on: ubuntu-latest
-        timeout-minutes: 20
-        strategy:
-            fail-fast: false
-            matrix:
-                python-version: ${{ fromJson(needs.config.outputs.python-versions) }}
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
-              with:
-                  python-version: ${{ matrix.python-version }}
-                  cache: pip
-
-            - name: Install dev dependencies
-              run: pip install -e ".[dev,postgres,drf]"
-
-            - name: Run tests
-              run: |
-                  pytest tests -v \
-                    --cov=django_query_optimizer \
-                    --cov-report=xml \
-                    --cov-report=term-missing \
-                    --cov-fail-under=85
-
-            - name: Upload coverage
-              if: matrix.python-version == needs.config.outputs.latest-python
-              uses: actions/upload-artifact@v4
-              with:
-                  name: coverage-xml
-                  path: coverage.xml
-
-    docker-test:
-        name: Docker test
-        needs: [lint, test]
+        name: Docker tests
+        needs: lint
         runs-on: ubuntu-latest
         timeout-minutes: 20
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
 
-            - name: Build and run tests via Docker
+            - name: Run tests via Docker
               run: make docker-test
+
+    sonar:
+        name: SonarCloud
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        needs: test
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+            pull-requests: read
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+
+            - uses: chrysa/github-actions/sonar-scan-python@v1
+              with:
+                  python-version: "3.14"
+                  sonar-token: ${{ secrets.SONAR_TOKEN }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  project-key: chrysa_django-query-optimizer
+                  organization: chrysa
+                  project-name: django-query-optimizer
+                  sources: src
+                  tests: tests
+                  coverage-report: coverage.xml

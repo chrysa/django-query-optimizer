@@ -3,40 +3,90 @@ name: Release
 
 on:
     push:
-        tags:
-            - "v*.*.*"
+        branches: [main]
+        paths-ignore:
+            - "**.md"
+            - ".github/**"
 
 permissions:
     contents: write
+    pull-requests: read
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
 
 jobs:
-    release:
-        name: Build & publish to PyPI
+    version:
+        name: Calculate version
         runs-on: ubuntu-latest
-        timeout-minutes: 20
+        timeout-minutes: 5
+        outputs:
+            majorMinorPatch: ${{ steps.gitversion.outputs.majorMinorPatch }}
+            preReleaseTag: ${{ steps.gitversion.outputs.preReleaseTag }}
+            should-release: ${{ steps.tag-check.outputs.should-release }}
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
               with:
                   fetch-depth: 0
 
-            - name: Set up Python
-              uses: actions/setup-python@v5
+            - name: Determine version
+              id: gitversion
+              uses: chrysa/github-actions/gitversion@v1
+
+            - name: Check if version tag already exists
+              id: tag-check
+              shell: bash
+              run: |
+                  VERSION="v${{ steps.gitversion.outputs.majorMinorPatch }}"
+                  if git ls-remote --tags origin "refs/tags/$VERSION" | grep -q .; then
+                      echo "should-release=false" >> "$GITHUB_OUTPUT"
+                      echo "Tag $VERSION already exists — skipping release"
+                  else
+                      echo "should-release=true" >> "$GITHUB_OUTPUT"
+                      echo "Tag $VERSION does not exist — proceeding"
+                  fi
+
+    release:
+        name: Changelog, build & publish
+        needs: version
+        if: needs.version.outputs.should-release == 'true' && needs.version.outputs.preReleaseTag == ''
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        steps:
+            - uses: actions/checkout@v6
               with:
-                  python-version: "3.14"
+                  fetch-depth: 0
+                  token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
-            - name: Install build tools
-              run: pip install build twine
+            - name: Configure git identity
+              run: |
+                  git config user.name 'chrysa'
+                  git config user.email 'greau.anthony+chrysa@gmail.com'
 
-            - name: Build package
-              run: python -m build
+            - name: Install git-cliff
+              uses: taiki-e/install-action@git-cliff
 
             - name: Generate changelog
+              run: git-cliff -o CHANGELOG.md
+
+            - name: Build & publish to PyPI
+              uses: chrysa/github-actions/publish-python-package@v1
+              with:
+                  pypi-token: ${{ secrets.PYPI_TOKEN }}
+                  build-backend: setuptools
+
+            - name: Tag & push release
               run: |
-                  curl -sSL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-x86_64-unknown-linux-gnu.tar.gz | tar xz
-                  ./git-cliff -o CHANGELOG.md
+                  VERSION="v${{ needs.version.outputs.majorMinorPatch }}"
+                  git add CHANGELOG.md
+                  git commit -m "chore(release): $VERSION [skip ci]" || true
+                  git tag "$VERSION"
+                  git push origin HEAD --tags
 
             - name: Create GitHub Release
               uses: softprops/action-gh-release@v2
               with:
+                  tag_name: v${{ needs.version.outputs.majorMinorPatch }}
                   body_path: CHANGELOG.md
                   files: dist/*
