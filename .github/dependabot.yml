@@ -1,0 +1,102 @@
+---
+# Dependabot template chrysa
+# Source: shared-standards/templates/github-config/dependabot.yml.tpl
+# Schedule: Friday 04:00 UTC · cooldown 7d
+
+version: 2
+updates:
+    # === GitHub Actions (all repos) ===
+    - package-ecosystem: github-actions
+      directory: .github/workflows/
+      assignees:
+          - chrysa
+      reviewers:
+          - chrysa
+      open-pull-requests-limit: 8
+      commit-message:
+          prefix: "[SKIP CI] [GA] "
+      labels:
+          - skip-ci
+          - dependencies
+          - Ci
+      schedule:
+          interval: cron
+          cronjob: "0 4 * * 5"
+      groups:
+          actions-official:
+              patterns:
+                  - actions/*
+          community-actions:
+              patterns:
+                  - "*"
+      cooldown:
+          default-days: 7
+
+    # === Pre-commit ===
+    - package-ecosystem: pre-commit
+      directory: /
+      assignees:
+          - chrysa
+      reviewers:
+          - chrysa
+      open-pull-requests-limit: 2
+      commit-message:
+          prefix: "[SKIP CI] [pre-commit] "
+      labels:
+          - skip-ci
+          - dependencies
+          - Pre-commit
+      schedule:
+          interval: cron
+          cronjob: "0 4 * * 5"
+
+    # === Python · pip ===
+    - package-ecosystem: pip
+      directory: /
+      assignees:
+          - chrysa
+      reviewers:
+          - chrysa
+      open-pull-requests-limit: 10
+      commit-message:
+          prefix: "[pip] "
+      labels:
+          - dependencies
+          - Python
+      schedule:
+          interval: cron
+          cronjob: "0 4 * * 5"
+      groups:
+          testing:
+              patterns:
+                  - pytest*
+                  - faker
+                  - mock
+                  - coverage*
+          typing-stubs:
+              patterns:
+                  - mypy*
+                  - types-*
+          linters:
+              patterns:
+                  - ruff*
+      cooldown:
+          default-days: 7
+
+    # === docker-compose ===
+    - package-ecosystem: docker-compose
+      directory: /
+      assignees:
+          - chrysa
+      reviewers:
+          - chrysa
+      open-pull-requests-limit: 5
+      commit-message:
+          prefix: "[SKIP CI] [docker-compose] "
+      labels:
+          - skip-ci
+          - dependencies
+          - Docker
+      schedule:
+          interval: cron
+          cronjob: "0 4 * * 5"
