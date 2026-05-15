@@ -24,6 +24,20 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
+    pre-commit:
+        name: Pre-commit checks
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.14"
+                  cache: pip
+
+            - uses: pre-commit/action@v3.0.1
+
     lint:
         name: Ruff + Mypy
         runs-on: ubuntu-latest
