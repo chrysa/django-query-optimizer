@@ -16,7 +16,8 @@ DC_RUN  := $(DC) run --rm
 
 .PHONY: help install install-dev pre-commit pre-commit-update \
         lint format format-check typecheck lint-all \
-        test test-fast \
+        test test-cov test-fast \
+        dev \
         build build-cache \
         docker-up docker-down docker-clean \
         changelog clean
@@ -59,6 +60,12 @@ pre-commit-update: ## Update pre-commit hooks to latest versions
 
 test: ## Run tests with coverage (via Docker)
 	$(DC_RUN) test
+
+test-cov: ## Run tests with coverage report (alias → test)
+	$(MAKE) test
+
+dev: ## Start development environment (alias → docker-up)
+	$(MAKE) docker-up
 
 docker-test: ## Build and run tests via Docker (CI target)
 	$(DC) build test
