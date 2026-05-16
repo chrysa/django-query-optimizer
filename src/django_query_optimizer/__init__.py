@@ -17,6 +17,7 @@ from django_query_optimizer._internal.version import __version__
 from django_query_optimizer.analyzers.query_analyzer import QueryAnalyzer
 from django_query_optimizer.collectors.query_collector import QueryCollector
 from django_query_optimizer.detectors.n_plus_one import NplusOneDetector
+from django_query_optimizer.detectors.select_related import SelectRelatedDetector
 from django_query_optimizer.middleware.query_collector_middleware import QueryOptimizerMiddleware
 from django_query_optimizer.recommendations.base import ORMRecommendation
 from django_query_optimizer.store import QueryStore, RequestRecord
@@ -26,6 +27,7 @@ __all__ = [
     "QueryCollector",
     "QueryAnalyzer",
     "NplusOneDetector",
+    "SelectRelatedDetector",
     "ORMRecommendation",
     "QueryOptimizerMiddleware",
     "QueryStore",

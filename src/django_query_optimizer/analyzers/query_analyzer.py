@@ -39,6 +39,7 @@ from collections import Counter
 
 from django_query_optimizer.collectors.query_collector import CapturedQuery
 from django_query_optimizer.detectors.n_plus_one import NplusOneDetector
+from django_query_optimizer.detectors.select_related import SelectRelatedDetector
 from django_query_optimizer.recommendations.base import ORMRecommendation, Severity
 
 # Threshold constants
@@ -69,6 +70,7 @@ class QueryAnalyzer:
         recommendations.extend(self._detect_slow_queries())
         recommendations.extend(self._detect_duplicate_queries())
         recommendations.extend(NplusOneDetector().detect(self._queries))
+        recommendations.extend(SelectRelatedDetector().detect(self._queries))
         return sorted(recommendations)
 
     # ── Detectors ─────────────────────────────────────────────────────────────
