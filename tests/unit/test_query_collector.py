@@ -114,11 +114,13 @@ class TestFindUserFrame:
         """Must skip frames whose path contains 'django/db/'."""
         import os
 
-        summary = traceback.StackSummary.from_list([
-            ("/usr/lib/python3.14/os.py", 10, "run", None),
-            (f"/app/src/django_query_optimizer{os.sep}collectors{os.sep}query_collector.py", 80, "_capture", None),
-            (f"/app{os.sep}myapp{os.sep}views.py", 42, "my_view", None),
-        ])
+        summary = traceback.StackSummary.from_list(
+            [
+                ("/usr/lib/python3.14/os.py", 10, "run", None),
+                (f"/app/src/django_query_optimizer{os.sep}collectors{os.sep}query_collector.py", 80, "_capture", None),
+                (f"/app{os.sep}myapp{os.sep}views.py", 42, "my_view", None),
+            ]
+        )
         filename, lineno = _find_user_frame(summary)
         assert "views.py" in filename
         assert lineno == 42
@@ -127,10 +129,12 @@ class TestFindUserFrame:
         """Must return ('', 0) when every frame is internal."""
         import os
 
-        summary = traceback.StackSummary.from_list([
-            (f"/app{os.sep}django_query_optimizer{os.sep}collectors{os.sep}query_collector.py", 1, "f", None),
-            (f"/app{os.sep}django{os.sep}db{os.sep}backends{os.sep}sqlite3.py", 2, "g", None),
-        ])
+        summary = traceback.StackSummary.from_list(
+            [
+                (f"/app{os.sep}django_query_optimizer{os.sep}collectors{os.sep}query_collector.py", 1, "f", None),
+                (f"/app{os.sep}django{os.sep}db{os.sep}backends{os.sep}sqlite3.py", 2, "g", None),
+            ]
+        )
         filename, lineno = _find_user_frame(summary)
         assert filename == ""
         assert lineno == 0

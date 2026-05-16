@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from django_query_optimizer.middleware.query_collector_middleware import QueryOptimizerMiddleware
 
 
@@ -29,22 +27,18 @@ class TestQueryOptimizerMiddlewareEndpoint:
 
         def fake_get_response(request: MagicMock) -> MagicMock:
             # Simulate a query captured during view execution.
-            captured.append(
-                CapturedQuery(sql="SELECT 1", duration_ms=1.0, stack_trace=[])
-            )
+            captured.append(CapturedQuery(sql="SELECT 1", duration_ms=1.0, stack_trace=[]))
             return _make_response()
 
         middleware = QueryOptimizerMiddleware(fake_get_response)
 
         # Patch QueryCollector so it yields the pre-populated list.
-        with patch(
-            "django_query_optimizer.middleware.query_collector_middleware.QueryCollector"
-        ) as MockCollector:
+        with patch("django_query_optimizer.middleware.query_collector_middleware.QueryCollector") as mock_collector:
             instance = MagicMock()
             instance.__enter__ = MagicMock(return_value=instance)
             instance.__exit__ = MagicMock(return_value=False)
             instance.queries = captured
-            MockCollector.return_value = instance
+            mock_collector.return_value = instance
 
             request = _make_request("/api/orders/")
             middleware(request)
@@ -63,14 +57,12 @@ class TestQueryOptimizerMiddlewareEndpoint:
 
             middleware = QueryOptimizerMiddleware(fake_get_response)
 
-            with patch(
-                "django_query_optimizer.middleware.query_collector_middleware.QueryCollector"
-            ) as MockCollector:
+            with patch("django_query_optimizer.middleware.query_collector_middleware.QueryCollector") as mock_collector:
                 instance = MagicMock()
                 instance.__enter__ = MagicMock(return_value=instance)
                 instance.__exit__ = MagicMock(return_value=False)
                 instance.queries = captured
-                MockCollector.return_value = instance
+                mock_collector.return_value = instance
 
                 request = _make_request(path)
                 middleware(request)
@@ -81,14 +73,12 @@ class TestQueryOptimizerMiddlewareEndpoint:
         """Middleware must not raise when no queries are captured."""
         middleware = QueryOptimizerMiddleware(lambda req: _make_response())
 
-        with patch(
-            "django_query_optimizer.middleware.query_collector_middleware.QueryCollector"
-        ) as MockCollector:
+        with patch("django_query_optimizer.middleware.query_collector_middleware.QueryCollector") as mock_collector:
             instance = MagicMock()
             instance.__enter__ = MagicMock(return_value=instance)
             instance.__exit__ = MagicMock(return_value=False)
             instance.queries = []
-            MockCollector.return_value = instance
+            mock_collector.return_value = instance
 
             middleware(_make_request())  # must not raise
 
@@ -98,14 +88,12 @@ class TestQueryOptimizerMiddlewareAttachment:
         """After the call, request.query_collector must be the collector instance."""
         middleware = QueryOptimizerMiddleware(lambda req: _make_response())
 
-        with patch(
-            "django_query_optimizer.middleware.query_collector_middleware.QueryCollector"
-        ) as MockCollector:
+        with patch("django_query_optimizer.middleware.query_collector_middleware.QueryCollector") as mock_collector:
             instance = MagicMock()
             instance.__enter__ = MagicMock(return_value=instance)
             instance.__exit__ = MagicMock(return_value=False)
             instance.queries = []
-            MockCollector.return_value = instance
+            mock_collector.return_value = instance
 
             request = _make_request()
             middleware(request)
@@ -116,19 +104,17 @@ class TestQueryOptimizerMiddlewareAttachment:
         """A fresh QueryCollector must be instantiated for every request."""
         middleware = QueryOptimizerMiddleware(lambda req: _make_response())
 
-        with patch(
-            "django_query_optimizer.middleware.query_collector_middleware.QueryCollector"
-        ) as MockCollector:
+        with patch("django_query_optimizer.middleware.query_collector_middleware.QueryCollector") as mock_collector:
             instance = MagicMock()
             instance.__enter__ = MagicMock(return_value=instance)
             instance.__exit__ = MagicMock(return_value=False)
             instance.queries = []
-            MockCollector.return_value = instance
+            mock_collector.return_value = instance
 
             middleware(_make_request())
             middleware(_make_request())
 
-        assert MockCollector.call_count == 2
+        assert mock_collector.call_count == 2
 
 
 class TestQueryOptimizerMiddlewareResponse:
@@ -137,14 +123,12 @@ class TestQueryOptimizerMiddlewareResponse:
         expected = _make_response()
         middleware = QueryOptimizerMiddleware(lambda req: expected)
 
-        with patch(
-            "django_query_optimizer.middleware.query_collector_middleware.QueryCollector"
-        ) as MockCollector:
+        with patch("django_query_optimizer.middleware.query_collector_middleware.QueryCollector") as mock_collector:
             instance = MagicMock()
             instance.__enter__ = MagicMock(return_value=instance)
             instance.__exit__ = MagicMock(return_value=False)
             instance.queries = []
-            MockCollector.return_value = instance
+            mock_collector.return_value = instance
 
             result = middleware(_make_request())
 

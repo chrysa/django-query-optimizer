@@ -42,7 +42,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from django_query_optimizer.analyzers.query_analyzer import QueryAnalyzer
 from django_query_optimizer.collectors.query_collector import QueryCollector
+from django_query_optimizer.store import QueryStore, RequestRecord
 
 if TYPE_CHECKING:
     from django.http import HttpRequest, HttpResponse
@@ -71,6 +73,16 @@ class QueryOptimizerMiddleware:
         endpoint = request.path
         for query in collector.queries:
             query.endpoint = endpoint
+
+        # Analyse and push a summary record to the in-process store.
+        recommendations = tuple(QueryAnalyzer(collector.queries).analyze())
+        record = RequestRecord(
+            endpoint=endpoint,
+            query_count=collector.count,
+            total_duration_ms=sum(q.duration_ms for q in collector.queries),
+            recommendations=recommendations,
+        )
+        QueryStore.get().push(record)
 
         # Attach for downstream access (admin dashboard, signals, tests).
         request.query_collector = collector  # type: ignore[attr-defined]

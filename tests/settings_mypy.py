@@ -1,8 +1,13 @@
-"""Minimal Django settings for the test suite."""
+"""Django settings used by mypy/django-stubs for type-checking only.
+
+This file intentionally omits ``django_query_optimizer`` from INSTALLED_APPS
+because the package is not installed in the mypy pre-commit virtual environment.
+mypy checks the source code directly from ``src/``; no app registration needed.
+"""
 
 from __future__ import annotations
 
-SECRET_KEY = "django-query-optimizer-test-secret-key-not-for-production"  # noqa: S105
+SECRET_KEY = "mypy-only-not-for-production"  # noqa: S105
 
 DATABASES = {
     "default": {
@@ -17,7 +22,6 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "django_query_optimizer",
 ]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -36,8 +40,3 @@ TEMPLATES = [
         },
     }
 ]
-
-MIGRATION_MODULES = {
-    # Disable migrations for our fake model — no table is created anyway.
-    "django_query_optimizer": None,
-}

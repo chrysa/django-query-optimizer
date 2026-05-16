@@ -1,0 +1,141 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content_title %}
+<h1>{% trans "Query Optimizer Dashboard" %}</h1>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+
+  {# ── Summary cards ──────────────────────────────────────────────────────── #}
+  <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+
+    <div class="module" style="flex:1; min-width:160px; padding:1rem; text-align:center;">
+      <p style="font-size:2rem; font-weight:bold; margin:0;">{{ total_requests }}</p>
+      <p style="margin:0; color:#666;">{% trans "Requests captured" %}</p>
+    </div>
+
+    <div class="module" style="flex:1; min-width:160px; padding:1rem; text-align:center;">
+      <p style="font-size:2rem; font-weight:bold; margin:0;">{{ total_queries }}</p>
+      <p style="margin:0; color:#666;">{% trans "Total queries" %}</p>
+    </div>
+
+    <div class="module" style="flex:1; min-width:160px; padding:1rem; text-align:center;">
+      <p style="font-size:2rem; font-weight:bold; margin:0;">{{ avg_queries_per_request|floatformat:1 }}</p>
+      <p style="margin:0; color:#666;">{% trans "Avg queries / request" %}</p>
+    </div>
+
+    <div class="module" style="flex:1; min-width:160px; padding:1rem; text-align:center;">
+      <p style="font-size:2rem; font-weight:bold; margin:0;">{{ slow_requests|length }}</p>
+      <p style="margin:0; color:#666;">{% trans "Slow requests (≥500 ms)" %}</p>
+    </div>
+
+  </div>
+
+  {# ── Recommendations by severity ────────────────────────────────────────── #}
+  {% if recommendations_by_severity %}
+  <div class="module" style="margin-bottom:1.5rem;">
+    <h2>{% trans "Recommendations by severity" %}</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>{% trans "Severity" %}</th>
+          <th>{% trans "Count" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for severity, count in recommendations_by_severity.items %}
+        <tr>
+          <td>
+            {% if severity == "HIGH" or severity == "CRITICAL" %}
+              <strong style="color:#ba2121;">{{ severity }}</strong>
+            {% elif severity == "MEDIUM" %}
+              <strong style="color:#e07b39;">{{ severity }}</strong>
+            {% else %}
+              {{ severity }}
+            {% endif %}
+          </td>
+          <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {# ── Top endpoints ──────────────────────────────────────────────────────── #}
+  <div class="module" style="margin-bottom:1.5rem;">
+    <h2>{% trans "Top endpoints" %}</h2>
+    {% if top_endpoints %}
+    <table>
+      <thead>
+        <tr>
+          <th>{% trans "Endpoint" %}</th>
+          <th>{% trans "Requests" %}</th>
+          <th>{% trans "Total queries" %}</th>
+          <th>{% trans "Avg queries / request" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ep in top_endpoints %}
+        <tr>
+          <td><code>{{ ep.endpoint }}</code></td>
+          <td>{{ ep.request_count }}</td>
+          <td>{{ ep.total_queries }}</td>
+          <td>
+            {% widthratio ep.total_queries ep.request_count 1 %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>
+      {% blocktrans trimmed %}
+      No data yet.  Add <code>QueryOptimizerMiddleware</code> to your
+      <code>MIDDLEWARE</code> setting to start capturing requests.
+      {% endblocktrans %}
+    </p>
+    {% endif %}
+  </div>
+
+  {# ── Recent requests ────────────────────────────────────────────────────── #}
+  <div class="module">
+    <h2>{% trans "Recent requests (last 50)" %}</h2>
+    {% if recent_records %}
+    <table>
+      <thead>
+        <tr>
+          <th>{% trans "Time (UTC)" %}</th>
+          <th>{% trans "Endpoint" %}</th>
+          <th>{% trans "Queries" %}</th>
+          <th>{% trans "Duration (ms)" %}</th>
+          <th>{% trans "Issues" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rec in recent_records %}
+        <tr>
+          <td>{{ rec.timestamp|date:"H:i:s" }}</td>
+          <td><code>{{ rec.endpoint }}</code></td>
+          <td>{{ rec.query_count }}</td>
+          <td>
+            {% if rec.total_duration_ms >= 500 %}
+              <strong style="color:#ba2121;">{{ rec.total_duration_ms|floatformat:1 }}</strong>
+            {% else %}
+              {{ rec.total_duration_ms|floatformat:1 }}
+            {% endif %}
+          </td>
+          <td>{{ rec.recommendations|length }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>{% trans "No requests captured yet." %}</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
