@@ -19,6 +19,7 @@ from django_query_optimizer.collectors.query_collector import QueryCollector
 from django_query_optimizer.detectors.n_plus_one import NplusOneDetector
 from django_query_optimizer.middleware.query_collector_middleware import QueryOptimizerMiddleware
 from django_query_optimizer.recommendations.base import ORMRecommendation
+from django_query_optimizer.scoring.query_scorer import QueryScore, QueryScorer
 from django_query_optimizer.store import QueryStore, RequestRecord
 
 __all__ = [
@@ -28,6 +29,8 @@ __all__ = [
     "NplusOneDetector",
     "ORMRecommendation",
     "QueryOptimizerMiddleware",
+    "QueryScore",
+    "QueryScorer",
     "QueryStore",
     "RequestRecord",
     "install",
