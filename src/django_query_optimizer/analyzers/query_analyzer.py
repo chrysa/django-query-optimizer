@@ -1,4 +1,37 @@
-"""Query analyzer — detects ORM issues in a list of CapturedQuery objects."""
+"""Query analyzer — detects ORM issues in a list of CapturedQuery objects.
+
+This module contains ``QueryAnalyzer``, the main entry point for inspecting a
+collected set of queries.  It iterates over a configurable pipeline of
+detectors and aggregates their ``ORMRecommendation`` results.
+
+Threshold constants
+-------------------
+``SLOW_QUERY_THRESHOLD_MS``
+    Queries that take longer than this value (in milliseconds) are flagged as
+    HIGH severity.  Default: **100.0 ms**.
+
+``DUPLICATE_MIN_COUNT``
+    A SQL statement that appears at least this many times in the collected
+    queries is flagged as a duplicate.  Default: **2**.
+
+Both constants are module-level and can be monkey-patched in tests or
+configuration code::
+
+    import django_query_optimizer.analyzers.query_analyzer as _qa
+    _qa.SLOW_QUERY_THRESHOLD_MS = 50.0
+    _qa.DUPLICATE_MIN_COUNT = 3
+
+Example::
+
+    from django_query_optimizer.analyzers.query_analyzer import QueryAnalyzer
+    from django_query_optimizer.collectors.query_collector import QueryCollector
+
+    with QueryCollector() as col:
+        list(MyModel.objects.all())
+
+    for rec in QueryAnalyzer(col.queries).analyze():
+        print(rec.severity, rec.message)
+"""
 
 from __future__ import annotations
 

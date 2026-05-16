@@ -1,4 +1,35 @@
-"""Base recommendation data class."""
+"""Base recommendation data class.
+
+This module defines the two core types that consumers of
+``django-query-optimizer`` interact with after analysis:
+
+``Severity``
+    A ``StrEnum`` that ranks how urgent an ORM issue is, from ``CRITICAL``
+    (must fix before deploy) down to ``INFO`` (nice-to-have).
+    ``StrEnum`` membership lets you compare and serialize values naturally:
+    ``rec.severity == "high"``.
+
+``ORMRecommendation``
+    A **frozen** dataclass representing a single detected issue.  Frozen means
+    instances are hashable and can be stored in sets or used as dict keys.
+    Instances support ``<`` comparison so a plain ``sorted()`` returns them
+    ordered from most to least severe.
+
+Example::
+
+    from django_query_optimizer.recommendations.base import ORMRecommendation, Severity
+
+    rec = ORMRecommendation(
+        issue_type="slow_query",
+        severity=Severity.HIGH,
+        message="Query took 142.3 ms (threshold: 100 ms)",
+        suggestion="Add an index on the filtered column.",
+        python_file="views/orders.py",
+        python_line=47,
+    )
+    print(rec.severity)          # "high"
+    print(rec.severity == "high") # True
+"""
 
 from __future__ import annotations
 

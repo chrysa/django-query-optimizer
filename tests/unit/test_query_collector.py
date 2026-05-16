@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import traceback
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -9,6 +10,7 @@ import pytest
 from django_query_optimizer.collectors.query_collector import (
     CapturedQuery,
     QueryCollector,
+    _find_user_frame,
 )
 
 
@@ -83,3 +85,52 @@ class TestQueryCollector:
             collector._capture(fake_execute, "SELECT 1", [], False, {})
 
         assert collector.queries[0].duration_ms == pytest.approx(expected_duration, abs=0.01)
+
+    def test_capture_populates_python_file_and_line(self) -> None:
+        """_capture must resolve python_file and python_line from the call-stack."""
+        collector = QueryCollector()
+
+        def fake_execute(*args: object, **kwargs: object) -> None:
+            return None
+
+        collector._capture(fake_execute, "SELECT 1", [], False, {})
+
+        q = collector.queries[0]
+        # python_file should point to THIS test file (the closest user frame).
+        assert q.python_file != "", "python_file must be set"
+        assert q.python_line > 0, "python_line must be positive"
+        assert "test_query_collector" in q.python_file
+
+
+class TestFindUserFrame:
+    def test_returns_user_frame(self) -> None:
+        """Must return a non-empty filename from user code."""
+        frames = traceback.extract_stack()
+        filename, lineno = _find_user_frame(frames)
+        assert filename != ""
+        assert lineno > 0
+
+    def test_skips_django_db_frames(self) -> None:
+        """Must skip frames whose path contains 'django/db/'."""
+        import os
+
+        summary = traceback.StackSummary.from_list([
+            ("/usr/lib/python3.14/os.py", 10, "run", None),
+            (f"/app/src/django_query_optimizer{os.sep}collectors{os.sep}query_collector.py", 80, "_capture", None),
+            (f"/app{os.sep}myapp{os.sep}views.py", 42, "my_view", None),
+        ])
+        filename, lineno = _find_user_frame(summary)
+        assert "views.py" in filename
+        assert lineno == 42
+
+    def test_returns_empty_when_all_frames_internal(self) -> None:
+        """Must return ('', 0) when every frame is internal."""
+        import os
+
+        summary = traceback.StackSummary.from_list([
+            (f"/app{os.sep}django_query_optimizer{os.sep}collectors{os.sep}query_collector.py", 1, "f", None),
+            (f"/app{os.sep}django{os.sep}db{os.sep}backends{os.sep}sqlite3.py", 2, "g", None),
+        ])
+        filename, lineno = _find_user_frame(summary)
+        assert filename == ""
+        assert lineno == 0
