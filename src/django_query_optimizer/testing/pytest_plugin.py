@@ -6,12 +6,17 @@ This module is registered as a pytest entry-point under the key
     [project.entry-points."pytest11"]
     query_optimizer = "django_query_optimizer.testing.pytest_plugin"
 
-It contributes two things to every pytest session:
+It contributes the following to every pytest session:
 
 ``--query-analysis`` CLI flag
     When passed, enables ORM query recording and analysis globally.  Future
     versions will automatically fail tests that produce recommendations above a
     configurable severity threshold.
+
+``--query-min-score`` option (int, default 0)
+    When combined with ``--query-analysis``, every test automatically fails
+    if its query health score falls below this threshold.  A value of 0
+    disables automatic enforcement.
 
 ``query_collector`` fixture
     Function-scoped fixture that yields a fresh :class:`QueryCollector` already
@@ -24,17 +29,37 @@ It contributes two things to every pytest session:
             client.get("/api/orders/")
             assert query_collector.count <= 3
 
-        def test_no_slow_queries(client, query_collector):
-            from django_query_optimizer import QueryAnalyzer
-            from django_query_optimizer.recommendations.base import Severity
+``assert_no_queries`` fixture
+    Fixture that returns a callable ``check()``.  Call it at the end of your
+    test to assert that **no** SQL queries were executed::
 
+        def test_cache_hit(client, assert_no_queries):
+            populate_cache()
+            client.get("/api/cached/")
+            assert_no_queries()
+
+``assert_max_queries`` fixture
+    Fixture that returns a callable ``check(max_count)``.  Call it to assert
+    that the number of queries does not exceed *max_count*::
+
+        def test_order_list(client, assert_max_queries):
             client.get("/api/orders/")
-            recs = QueryAnalyzer(query_collector.queries).analyze()
-            assert not any(r.severity == Severity.HIGH for r in recs)
+            assert_max_queries(3)
+
+``assert_query_health`` fixture
+    Fixture that returns a callable ``check(min_score=80)``.  Runs
+    :class:`~django_query_optimizer.analyzers.QueryAnalyzer` + scorer and
+    fails if the score is below *min_score*. Returns the
+    :class:`~django_query_optimizer.scoring.query_scorer.QueryScore`::
+
+        def test_order_view_health(client, assert_query_health):
+            client.get("/api/orders/")
+            score = assert_query_health(min_score=80)
+            assert score.grade in ("A", "B")
 
 ``query_analysis`` marker
     Decorates a single test to mark it for ORM analysis (no behavior yet —
-    reserved for Phase 3 per-test reporting)::
+    reserved for future per-test reporting)::
 
         @pytest.mark.query_analysis
         def test_expensive_view(client, query_collector): ...
@@ -49,16 +74,77 @@ import pytest
 
 if TYPE_CHECKING:
     from django_query_optimizer.collectors.query_collector import QueryCollector
+    from django_query_optimizer.scoring.query_scorer import QueryScore
+
+
+# ── Internal assertion helpers ────────────────────────────────────────────────
+
+
+class _NoQueryAssertion:
+    """Callable returned by :func:`assert_no_queries`."""
+
+    def __init__(self, collector: QueryCollector) -> None:
+        self._collector = collector
+
+    def __call__(self) -> None:
+        count = self._collector.count
+        if count > 0:
+            lines = "\n".join(f"  [{i + 1}] {q.sql[:120]}" for i, q in enumerate(self._collector.queries))
+            raise AssertionError(f"Expected no SQL queries, but {count} were executed:\n{lines}")
+
+
+class _MaxQueryAssertion:
+    """Callable returned by :func:`assert_max_queries`."""
+
+    def __init__(self, collector: QueryCollector) -> None:
+        self._collector = collector
+
+    def __call__(self, max_count: int) -> None:
+        count = self._collector.count
+        if count > max_count:
+            raise AssertionError(
+                f"Expected at most {max_count} SQL quer{'y' if max_count == 1 else 'ies'}, but {count} were executed."
+            )
+
+
+class _QueryHealthAssertion:
+    """Callable returned by :func:`assert_query_health`."""
+
+    def __init__(self, collector: QueryCollector) -> None:
+        self._collector = collector
+
+    def __call__(self, min_score: int = 80) -> QueryScore:
+        from django_query_optimizer.analyzers.query_analyzer import QueryAnalyzer
+        from django_query_optimizer.scoring.query_scorer import QueryScorer
+
+        recs = QueryAnalyzer(self._collector.queries).analyze()
+        score = QueryScorer(recs).compute()
+        if score.value < min_score:
+            raise AssertionError(
+                f"Query health score {score.value}/100 ({score.grade}) is below the minimum "
+                f"threshold of {min_score}.\n{score.summary}"
+            )
+        return score
+
+
+# ── Plugin hooks ──────────────────────────────────────────────────────────────
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
-    """Add --query-analysis flag to pytest."""
+    """Add --query-analysis and --query-min-score flags to pytest."""
     group = parser.getgroup("django-query-optimizer")
     group.addoption(
         "--query-analysis",
         action="store_true",
         default=False,
         help="Enable ORM query analysis on every test.",
+    )
+    group.addoption(
+        "--query-min-score",
+        type=int,
+        default=0,
+        metavar="N",
+        help="Minimum query health score (0-100). Requires --query-analysis. Default: 0 (disabled).",
     )
 
 
@@ -70,6 +156,9 @@ def pytest_configure(config: pytest.Config) -> None:
     )
 
 
+# ── Fixtures ──────────────────────────────────────────────────────────────────
+
+
 @pytest.fixture()
 def query_collector() -> Generator[QueryCollector]:
     """Pytest fixture: return a fresh QueryCollector scoped to the test."""
@@ -78,3 +167,47 @@ def query_collector() -> Generator[QueryCollector]:
     collector = QueryCollector()
     with collector:
         yield collector
+
+
+@pytest.fixture()
+def assert_no_queries(query_collector: QueryCollector) -> _NoQueryAssertion:
+    """Fixture: callable that asserts no SQL queries were executed.
+
+    Example::
+
+        def test_cache_hit(client, assert_no_queries):
+            populate_cache()
+            client.get("/api/cached/")
+            assert_no_queries()
+    """
+    return _NoQueryAssertion(query_collector)
+
+
+@pytest.fixture()
+def assert_max_queries(query_collector: QueryCollector) -> _MaxQueryAssertion:
+    """Fixture: callable ``check(max_count)`` — fails if queries > max_count.
+
+    Example::
+
+        def test_order_list(client, assert_max_queries):
+            client.get("/api/orders/")
+            assert_max_queries(3)
+    """
+    return _MaxQueryAssertion(query_collector)
+
+
+@pytest.fixture()
+def assert_query_health(query_collector: QueryCollector) -> _QueryHealthAssertion:
+    """Fixture: callable ``check(min_score=80)`` — fails if health score < threshold.
+
+    Returns the :class:`~django_query_optimizer.scoring.query_scorer.QueryScore`
+    so callers can make additional assertions.
+
+    Example::
+
+        def test_order_view_health(client, assert_query_health):
+            client.get("/api/orders/")
+            score = assert_query_health(min_score=80)
+            assert score.grade != "F"
+    """
+    return _QueryHealthAssertion(query_collector)
