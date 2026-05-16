@@ -40,6 +40,7 @@ from collections import Counter
 from django_query_optimizer.collectors.query_collector import CapturedQuery
 from django_query_optimizer.detectors.n_plus_one import NplusOneDetector
 from django_query_optimizer.recommendations.base import ORMRecommendation, Severity
+from django_query_optimizer.scoring.query_scorer import QueryScore, QueryScorer
 
 # Threshold constants
 SLOW_QUERY_THRESHOLD_MS: float = 100.0
@@ -70,6 +71,19 @@ class QueryAnalyzer:
         recommendations.extend(self._detect_duplicate_queries())
         recommendations.extend(NplusOneDetector().detect(self._queries))
         return sorted(recommendations)
+
+    def score(self) -> QueryScore:
+        """Return a health score summarising all detected issues.
+
+        Equivalent to ``QueryScorer(self.analyze()).compute()``.
+
+        Example::
+
+            analyzer = QueryAnalyzer(collector.queries)
+            score = analyzer.score()
+            print(score.summary)  # "Score 85/100 (B) — 1 issue(s): 1 high"
+        """
+        return QueryScorer(self.analyze()).compute()
 
     # ── Detectors ─────────────────────────────────────────────────────────────
 
