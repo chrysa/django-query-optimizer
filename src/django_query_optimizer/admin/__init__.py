@@ -39,7 +39,7 @@ class QueryLog(models.Model):
 
 
 @admin.register(QueryLog)
-class QueryLogAdmin(admin.ModelAdmin[QueryLog]):
+class QueryLogAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     """Admin view that renders the Query Optimizer dashboard."""
 
     change_list_template = "django_query_optimizer/admin/change_list.html"
