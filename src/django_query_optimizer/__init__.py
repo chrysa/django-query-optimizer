@@ -6,6 +6,8 @@ Public API surface:
     QueryAnalyzer               — analyzes collected queries for issues
     ORMRecommendation           — a single optimization recommendation
     QueryOptimizerMiddleware    — per-request Django middleware
+    QueryStore                  — in-memory store for request records
+    RequestRecord               — snapshot of one request's query activity
     install                     — activate the optimizer middleware in Django settings
 """
 
@@ -16,6 +18,7 @@ from django_query_optimizer.analyzers.query_analyzer import QueryAnalyzer
 from django_query_optimizer.collectors.query_collector import QueryCollector
 from django_query_optimizer.middleware.query_collector_middleware import QueryOptimizerMiddleware
 from django_query_optimizer.recommendations.base import ORMRecommendation
+from django_query_optimizer.store import QueryStore, RequestRecord
 
 __all__ = [
     "__version__",
@@ -23,6 +26,8 @@ __all__ = [
     "QueryAnalyzer",
     "ORMRecommendation",
     "QueryOptimizerMiddleware",
+    "QueryStore",
+    "RequestRecord",
     "install",
 ]
 
