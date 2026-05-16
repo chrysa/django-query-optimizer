@@ -36,10 +36,13 @@ Django Admin, your test suite, and VS Code.
 | Phase | Feature | Status |
 |---|---|---|
 | 1a — Core | SQL collection (`QueryCollector`), `QueryAnalyzer`, slow query & duplicate detectors | ✅ Done |
-| 1b — HTTP Middleware | `QueryOptimizerMiddleware` — populate `endpoint`, `python_file`, `python_line` per request | 🚧 In progress |
-| 1c — Admin | Django Admin dashboard (session list, top slow queries) | Planned |
-| 2 — ORM Intelligence | N+1 detection, `select_related` suggestions, DRF serializer analysis, query scoring | Planned |
-| 3 — Testing | `--query-analysis` SARIF report, regression detection, CI integration | Planned |
+| 1b — HTTP Middleware | `QueryOptimizerMiddleware` — per-request collector, sets `endpoint` / `python_file` / `python_line` | ✅ Done |
+| 1c — Admin | Django Admin dashboard (session list, top slow queries) | ✅ Done |
+| 2a — N+1 detector | `NplusOneDetector` — groups repeated SQL patterns by call-site, severity escalation | ✅ Done |
+| 2b — DRF detector | `DRFSerializerDetector` — N+1 patterns triggered by DRF serializer/relation/field code | ✅ Done |
+| 2c — FK detector | `SelectRelatedDetector` — single-row FK lookup repetitions | ✅ Done |
+| 2d — Scoring | `QueryScorer` — 0-100 health score + letter grade (A–F) | ✅ Done |
+| 3 — Testing | `SARIFReporter`, `RegressionDetector`, `--query-analysis` pytest flag | ✅ Done |
 | 4 — VS Code | Inline diagnostics (SARIF), quick fixes, realtime warnings | Planned |
 | 5 — Multi Framework | FastAPI, SQLAlchemy, Prisma | Planned |
 
@@ -49,9 +52,7 @@ Django Admin, your test suite, and VS Code.
 
 ```
 src/django_query_optimizer/
-├── __init__.py                    # Public API — QueryCollector, QueryAnalyzer,
-│                                  #              ORMRecommendation, QueryOptimizerMiddleware,
-│                                  #              install()
+├── __init__.py                    # Public API
 ├── py.typed                       # PEP 561 marker
 ├── _internal/
 │   ├── bootstrap.py               # One-time registration hook (idempotent)
@@ -62,10 +63,21 @@ src/django_query_optimizer/
 │   └── query_collector_middleware.py  # QueryOptimizerMiddleware — per-request collector
 ├── analyzers/
 │   └── query_analyzer.py          # QueryAnalyzer — slow query & duplicate detectors
-├── detectors/                     # Phase 2 — N+1, select_related, DRF analysis (planned)
+├── detectors/
+│   ├── base.py                    # BaseDetector protocol
+│   ├── n_plus_one.py              # NplusOneDetector — repeated SQL pattern detection
+│   ├── select_related.py          # SelectRelatedDetector — FK lookup repetitions
+│   └── drf_serializer.py          # DRFSerializerDetector — DRF serializer N+1 patterns
 ├── recommendations/
 │   └── base.py                    # ORMRecommendation frozen dataclass + Severity enum
-├── admin/                         # Phase 1c — Django Admin dashboard (planned)
+├── scoring/
+│   └── query_scorer.py            # QueryScorer — 0-100 health score + letter grade
+├── regression/
+│   └── detector.py                # RegressionDetector — baseline compare + JSON persist
+├── reporting/
+│   └── sarif.py                   # SARIFReporter — SARIF 2.1 output for VS Code / CI
+├── store.py                       # QueryStore + RequestRecord — in-memory request history
+├── admin/                         # Django Admin dashboard
 └── testing/
     └── pytest_plugin.py           # pytest entry-point: --query-analysis flag + fixture
 ```
@@ -207,21 +219,15 @@ analyzer = QueryAnalyzer(collector.queries)
 recommendations = analyzer.analyze()
 ```
 
-**Built-in detectors (Phase 1):**
+**Built-in detectors:**
 
-| Detector | Severity | Trigger |
-|---|---|---|
-| `slow_query` | HIGH | `duration_ms >= 100.0` ms |
-| `duplicate_query` | MEDIUM | Same SQL executed ≥ 2 times |
-
-**Planned detectors (Phase 2):**
-
-| Detector | Severity | Trigger |
-|---|---|---|
-| `n_plus_one` | CRITICAL | Pattern of 1 + N identical queries in a loop |
-| `missing_select_related` | HIGH | FK accessed outside initial queryset |
-| `missing_prefetch_related` | HIGH | M2M traversal in a loop |
-| `missing_index` | MEDIUM | `WHERE` clause on unindexed column (heuristic) |
+| Detector | Class | Severity | Trigger |
+|---|---|---|---|
+| `slow_query` | `QueryAnalyzer` | HIGH | `duration_ms >= 100.0` ms |
+| `duplicate_query` | `QueryAnalyzer` | MEDIUM | Same SQL executed ≥ 2 times |
+| `n_plus_one` | `NplusOneDetector` | MEDIUM / HIGH / CRITICAL | Same SQL pattern from same call-site |
+| `missing_select_related` | `SelectRelatedDetector` | MEDIUM / HIGH | FK lookup repeated from same call-site |
+| `drf_n_plus_one` | `DRFSerializerDetector` | MEDIUM / HIGH | Repeated SQL originating from DRF serializer code |
 
 ---
 
