@@ -20,6 +20,8 @@ from django_query_optimizer.detectors.n_plus_one import NplusOneDetector
 from django_query_optimizer.detectors.select_related import SelectRelatedDetector
 from django_query_optimizer.middleware.query_collector_middleware import QueryOptimizerMiddleware
 from django_query_optimizer.recommendations.base import ORMRecommendation
+from django_query_optimizer.regression.detector import RegressionDetector, RegressionResult
+from django_query_optimizer.reporting.sarif import SARIFReporter
 from django_query_optimizer.scoring.query_scorer import QueryScore, QueryScorer
 from django_query_optimizer.store import QueryStore, RequestRecord
 
@@ -35,6 +37,9 @@ __all__ = [
     "QueryScorer",
     "QueryStore",
     "RequestRecord",
+    "RegressionDetector",
+    "RegressionResult",
+    "SARIFReporter",
     "install",
 ]
 
