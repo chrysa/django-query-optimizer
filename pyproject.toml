@@ -95,7 +95,7 @@ module = ["tests.*"]
 ignore_errors = true
 
 [tool.django-stubs]
-django_settings_module = "tests.settings"
+django_settings_module = "tests.settings_mypy"
 
 [tool.ruff]
 line-length = 120
