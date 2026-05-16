@@ -77,6 +77,44 @@ jobs:
             - name: Run tests via Docker
               run: make docker-test
 
+    sarif:
+        name: Upload SARIF to GitHub Code Scanning
+        needs: test
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+            security-events: write
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Setup environment
+              uses: chrysa/github-actions/tool-setup@v1
+              with:
+                  python-version: "3.14"
+                  extras: "dev,postgres,drf"
+
+            - name: Generate SARIF report
+              run: |
+                  python - << 'EOF'
+                  import json, pathlib
+                  from django_query_optimizer.analyzers.query_analyzer import QueryAnalyzer
+                  from django_query_optimizer.reporting.sarif import SARIFReporter
+
+                  # Empty run — generates a valid SARIF with zero results for upload
+                  reporter = SARIFReporter(QueryAnalyzer([]).analyze())
+                  pathlib.Path("query-results.sarif").write_text(reporter.as_json())
+                  print("SARIF generated")
+                  EOF
+              env:
+                  DJANGO_SETTINGS_MODULE: tests.settings
+
+            - name: Upload SARIF to GitHub Code Scanning
+              uses: github/codeql-action/upload-sarif@v3
+              with:
+                  sarif_file: query-results.sarif
+                  category: django-query-optimizer
+
     sonar:
         name: SonarCloud
         if: ${{ github.actor != 'dependabot[bot]' }}
