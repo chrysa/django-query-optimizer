@@ -6,7 +6,7 @@
 ## Purpose
 
 Python library that detects N+1 queries, duplicate queries, slow queries, and missing indexes
-in Django applications — at development time, in the test suite, and (planned) in VS Code.
+in Django applications — at development time, in the test suite, and in VS Code (Phase 4 in progress).
 
 ---
 
@@ -22,10 +22,14 @@ in Django applications — at development time, in the test suite, and (planned)
 | 2c — FK detector (`SelectRelatedDetector`) | ✅ Done |
 | 2d — Query scoring (`QueryScorer`) | ✅ Done |
 | 3 — pytest SARIF report + `RegressionDetector` | ✅ Done |
-| 4 — VS Code extension (reads SARIF) | Planned |
+| 4 — VS Code extension (reads SARIF) | 🚧 In Progress |
 | 5 — Multi-framework | Planned |
 
 Current version: **0.1.0** (pre-alpha, unreleased on PyPI).
+
+**Phase 4 repos:**
+- Pytest plugin: PR [#22](https://github.com/chrysa/django-query-optimizer/pull/22) on `feat/phase4-sarif-output`
+- VS Code extension: [`chrysa/django-query-optimizer-vscode`](https://github.com/chrysa/django-query-optimizer-vscode)
 
 ---
 
