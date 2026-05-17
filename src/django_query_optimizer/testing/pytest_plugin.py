@@ -67,6 +67,7 @@ It contributes the following to every pytest session:
 
 from __future__ import annotations
 
+import pathlib
 from collections.abc import Generator
 from typing import TYPE_CHECKING
 
@@ -74,7 +75,13 @@ import pytest
 
 if TYPE_CHECKING:
     from django_query_optimizer.collectors.query_collector import QueryCollector
+    from django_query_optimizer.recommendations.base import ORMRecommendation
     from django_query_optimizer.scoring.query_scorer import QueryScore
+
+
+# ── Session-level accumulator ─────────────────────────────────────────────────
+
+_SESSION_RECOMMENDATIONS: list[ORMRecommendation] = []
 
 
 # ── Internal assertion helpers ────────────────────────────────────────────────
@@ -131,7 +138,7 @@ class _QueryHealthAssertion:
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
-    """Add --query-analysis and --query-min-score flags to pytest."""
+    """Add --query-analysis, --query-min-score, and --sarif-output flags to pytest."""
     group = parser.getgroup("django-query-optimizer")
     group.addoption(
         "--query-analysis",
@@ -145,6 +152,14 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=0,
         metavar="N",
         help="Minimum query health score (0-100). Requires --query-analysis. Default: 0 (disabled).",
+    )
+    group.addoption(
+        "--sarif-output",
+        type=str,
+        default=None,
+        metavar="FILE",
+        help="Write ORM findings as a SARIF 2.1.0 report to FILE at session end. "
+        "Requires --query-analysis.",
     )
 
 
@@ -211,3 +226,39 @@ def assert_query_health(query_collector: QueryCollector) -> _QueryHealthAssertio
             assert score.grade != "F"
     """
     return _QueryHealthAssertion(query_collector)
+
+
+# ── Session-level SARIF hooks ─────────────────────────────────────────────────
+
+
+@pytest.fixture(autouse=True)
+def _collect_recommendations_for_sarif(
+    request: pytest.FixtureRequest,
+    query_collector: QueryCollector,
+) -> Generator[None]:
+    """Autouse fixture: accumulate recommendations into the session list when
+    ``--query-analysis`` and ``--sarif-output`` are both active."""
+    yield
+    if not request.config.getoption("--query-analysis", default=False):
+        return
+    if request.config.getoption("--sarif-output", default=None) is None:
+        return
+    from django_query_optimizer.analyzers.query_analyzer import QueryAnalyzer
+
+    recs = QueryAnalyzer(query_collector.queries).analyze()
+    _SESSION_RECOMMENDATIONS.extend(recs)
+
+
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:  # noqa: ARG001
+    """Write the accumulated SARIF report at the end of the session."""
+    sarif_path: str | None = session.config.getoption("--sarif-output", default=None)
+    if sarif_path is None:
+        return
+    if not session.config.getoption("--query-analysis", default=False):
+        return
+
+    from django_query_optimizer.reporting.sarif import SARIFReporter
+
+    output = pathlib.Path(sarif_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(SARIFReporter(_SESSION_RECOMMENDATIONS).as_json(), encoding="utf-8")
