@@ -17,3 +17,6 @@ coverage.xml
 htmlcov/
 *.log
 .DS_Store
+
+# CodeGraph (local index — never commit)
+.codegraph/
