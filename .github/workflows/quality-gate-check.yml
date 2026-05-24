@@ -1,0 +1,13 @@
+---
+name: Quality Gate Check
+
+on:
+    pull_request:
+        branches: [main, master, develop]
+        types: [opened, reopened, synchronize]
+    push:
+        branches: [main, master]
+
+jobs:
+    call:
+        uses: chrysa/github-actions/.github/workflows/quality-gate-check.yml@main
