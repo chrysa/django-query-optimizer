@@ -1,0 +1,14 @@
+---
+name: Dependabot Auto-merge
+
+on:
+    pull_request_target:
+        types: [opened, synchronize, reopened]
+
+concurrency:
+    cancel-in-progress: false
+    group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+    call:
+        uses: chrysa/github-actions/.github/workflows/dependabot-auto-merge.yml@main
