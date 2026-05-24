@@ -43,7 +43,7 @@ Django Admin, your test suite, and VS Code.
 | 2c — FK detector | `SelectRelatedDetector` — single-row FK lookup repetitions | ✅ Done |
 | 2d — Scoring | `QueryScorer` — 0-100 health score + letter grade (A–F) | ✅ Done |
 | 3 — Testing | `SARIFReporter`, `RegressionDetector`, `--query-analysis` pytest flag | ✅ Done |
-| 4 — VS Code | Inline diagnostics (SARIF), quick fixes, realtime warnings | Planned |
+| 4 — VS Code | Inline diagnostics (SARIF), realtime warnings | 🚧 In Progress |
 | 5 — Multi Framework | FastAPI, SQLAlchemy, Prisma | Planned |
 
 ---
@@ -336,6 +336,36 @@ def test_no_slow_queries(client, query_collector):
 ```
 
 The `query_collector` fixture is **function-scoped**: each test gets a fresh collector.
+
+### Flag: `--sarif-output FILE` _(Phase 4 — in progress)_
+
+Write a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html)
+report at the end of the test session. Requires `--query-analysis`.
+
+```bash
+pytest --query-analysis --sarif-output query-results.sarif
+```
+
+All findings accumulated across the entire session are serialised via `SARIFReporter`
+into the specified file. Parent directories are created automatically.
+
+The report can be consumed by the
+[django-query-optimizer VS Code extension](https://github.com/chrysa/django-query-optimizer-vscode),
+which surfaces findings as inline squiggles and Problems panel entries.
+
+**CI integration example** (write SARIF, upload as GitHub Actions artifact):
+
+```yaml
+- name: Run tests with ORM analysis
+  run: pytest --query-analysis --sarif-output reports/query-results.sarif
+
+- name: Upload SARIF
+  uses: actions/upload-artifact@v4
+  if: always()
+  with:
+    name: sarif-report
+    path: reports/query-results.sarif
+```
 
 ---
 
