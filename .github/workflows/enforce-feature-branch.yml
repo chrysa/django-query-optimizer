@@ -1,0 +1,33 @@
+---
+# Enforce feature branch naming policy (chrysa ecosystem)
+#
+# Copy to .github/workflows/enforce-feature-branch.yml
+# Blocks PRs from branches that don't follow the naming convention.
+# Dependabot PRs are automatically excluded.
+
+name: Enforce Feature Branch Policy
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+    branch-policy:
+        if: github.actor != 'dependabot[bot]'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Validate PR source branch naming
+              shell: bash
+              env:
+                  BRANCH_NAME: ${{ github.head_ref }}
+              run: |
+                  branch="$BRANCH_NAME"
+                  pattern='^(feat|feature|fix|chore|docs|refactor|test|ci|build|perf|hotfix)/[a-z0-9._-]+$'
+                  if [[ ! "$branch" =~ $pattern ]]; then
+                    echo "❌ Invalid branch name: $branch"
+                    echo "Expected format: type/short-description"
+                    echo "Valid types: feat, feature, fix, chore, docs, refactor, test, ci, build, perf, hotfix"
+                    echo "Example: feat/add-auth-flow"
+                    exit 1
+                  fi
+                  echo "✅ Branch name '$branch' is valid"
