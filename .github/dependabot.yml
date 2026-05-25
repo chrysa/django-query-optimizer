@@ -1,11 +1,16 @@
 ---
-# Dependabot template chrysa
-# Source: shared-standards/templates/github-config/dependabot.yml.tpl
-# Schedule: Friday 04:00 UTC · cooldown 7d
+# Dependabot template chrysa · avril 2026
+# Source : shared-standards/templates/github-config/dependabot.yml.tpl
+#
+# Schedule unifié : vendredi 04h00 UTC cron (évite PR en cours de sprint)
+# Cooldown 7j sur ecosystems bruyants · groups pour réduire volume PR
+#
+# Marqueurs {{ ... }} à remplacer par le script apply-ci-process.sh selon stack détectée.
+# Ecosystems possibles : pip, npm, docker, docker-compose, github-actions, pre-commit, cargo
 
 version: 2
 updates:
-    # === GitHub Actions (all repos) ===
+    # ═══ GitHub Actions (tous repos) ═══
     - package-ecosystem: github-actions
       directory: .github/workflows/
       assignees:
@@ -26,13 +31,16 @@ updates:
           actions-official:
               patterns:
                   - actions/*
+          peter-evans:
+              patterns:
+                  - peter-evans/*
           community-actions:
               patterns:
                   - "*"
       cooldown:
           default-days: 7
 
-    # === Pre-commit ===
+    # ═══ Pre-commit (tous repos avec .pre-commit-config.yaml) ═══
     - package-ecosystem: pre-commit
       directory: /
       assignees:
@@ -50,7 +58,7 @@ updates:
           interval: cron
           cronjob: "0 4 * * 5"
 
-    # === Python · pip ===
+    # ═══ Python · pip ═══
     - package-ecosystem: pip
       directory: /
       assignees:
@@ -80,10 +88,29 @@ updates:
           linters:
               patterns:
                   - ruff*
+                  - black*
+                  - flake8*
       cooldown:
           default-days: 7
 
-    # === docker-compose ===
+    # ═══ Docker ═══
+    - package-ecosystem: docker
+      directory: /
+      assignees:
+          - chrysa
+      reviewers:
+          - chrysa
+      open-pull-requests-limit: 5
+      commit-message:
+          prefix: "[docker] "
+      labels:
+          - dependencies
+          - Docker
+      schedule:
+          interval: cron
+          cronjob: "0 4 * * 5"
+
+    # ═══ docker-compose ═══
     - package-ecosystem: docker-compose
       directory: /
       assignees:
