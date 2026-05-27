@@ -27,7 +27,7 @@ repos:
             args: [--config-file, pyproject.toml]
 
     - repo: https://github.com/chrysa/pre-commit-tools
-      rev: v0.1.1-76
+      rev: v0.1.1-92
       hooks:
           - id: adr-gate
           - id: python-print-detection
