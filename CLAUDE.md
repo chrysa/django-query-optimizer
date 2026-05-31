@@ -131,3 +131,8 @@ Coverage threshold: **85%** (enforced by `pytest-cov` with `fail_under = 85`).
 - No breaking changes without a major version bump.
 - All type annotations must pass `mypy --strict`.
 - Commit identity: `user.name=chrysa`, `user.email=greau.anthony+chrysa@gmail.com`.
+
+## Skills
+
+Shared skills from `shared-standards/.claude/skills/`:
+- `ui-ux/SKILL.md` — UX/UI/ergonomics across ALL surfaces (web, CLI, VS Code, Discord, desktop, game, agent) + WCAG 2.1 AA + dark mode + i18n FR+EN (load when building any human-facing surface)
