@@ -85,6 +85,6 @@ class QueryOptimizerMiddleware:
         QueryStore.get().push(record)
 
         # Attach for downstream access (admin dashboard, signals, tests).
-        request.query_collector = collector  # type: ignore[attr-defined]
+        request.query_collector = collector
 
         return response
