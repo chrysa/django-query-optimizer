@@ -10,7 +10,7 @@ def bootstrap() -> None:
 
     Safe to call multiple times; subsequent calls are no-ops.
     """
-    global _BOOTSTRAPPED  # noqa: PLW0603
+    global _BOOTSTRAPPED
     if _BOOTSTRAPPED:
         return
 

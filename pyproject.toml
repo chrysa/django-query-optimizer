@@ -94,6 +94,17 @@ exclude = ["^tests/"]
 module = ["tests.*"]
 ignore_errors = true
 
+[[tool.mypy.overrides]]
+# HttpRequest does not declare dynamic attributes; query_collector is set at runtime
+module = ["django_query_optimizer.middleware.query_collector_middleware"]
+disable_error_codes = ["attr-defined"]
+
+[[tool.mypy.overrides]]
+# Django admin typing is incomplete: ModelAdmin has no generic params (type-arg)
+# and each_context/TemplateResponse use object instead of HttpRequest (arg-type)
+module = ["django_query_optimizer.admin"]
+disable_error_codes = ["type-arg", "arg-type"]
+
 [tool.django-stubs]
 django_settings_module = "tests.settings_mypy"
 

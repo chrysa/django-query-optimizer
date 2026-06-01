@@ -141,7 +141,7 @@ class QueryCollector:
     @staticmethod
     def register() -> None:
         """Register the global Django execute_wrapper (called once at bootstrap)."""
-        global _REGISTERED  # noqa: PLW0603
+        global _REGISTERED
         with _REGISTRY_LOCK:
             if _REGISTERED:
                 return

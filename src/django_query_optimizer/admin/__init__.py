@@ -39,7 +39,7 @@ class QueryLog(models.Model):
 
 
 @admin.register(QueryLog)
-class QueryLogAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+class QueryLogAdmin(admin.ModelAdmin):
     """Admin view that renders the Query Optimizer dashboard."""
 
     change_list_template = "django_query_optimizer/admin/change_list.html"
@@ -71,7 +71,7 @@ class QueryLogAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
         recent_records = list(reversed(all_records[-50:]))
 
         context: dict[str, Any] = {
-            **self.admin_site.each_context(request),  # type: ignore[arg-type]
+            **self.admin_site.each_context(request),
             **store.summary(),
             "recent_records": recent_records,
             "title": "Query Optimizer Dashboard",
@@ -79,4 +79,4 @@ class QueryLogAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
             "app_label": self.model._meta.app_label,
             **(extra_context or {}),
         }
-        return TemplateResponse(request, self.change_list_template, context)  # type: ignore[arg-type]
+        return TemplateResponse(request, self.change_list_template, context)
