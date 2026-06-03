@@ -136,6 +136,28 @@ MIDDLEWARE = [
 > **Warning:** Do not add `install()` or the middleware to production settings. Both add
 > overhead to every database query.
 
+### Admin dashboard (optional)
+
+To expose the **Query Optimizer** dashboard under Django Admin, add the app to
+`INSTALLED_APPS` and apply migrations:
+
+```python
+INSTALLED_APPS = [
+    ...
+    "django.contrib.admin",
+    "django_query_optimizer",
+]
+```
+
+```bash
+python manage.py migrate django_query_optimizer
+```
+
+The shipped migration only registers an **unmanaged** `QueryLog` proxy model
+(`managed = False`, no table created) so that the admin section and its
+`ContentType` / `Permission` rows exist. The dashboard reads the in-process
+`QueryStore`, not the database.
+
 ---
 
 ## Quick Start
@@ -391,8 +413,9 @@ _qa.DUPLICATE_MIN_COUNT = 3          # only warn on 3+ duplicates
 ```bash
 make install-dev    # install package + dev extras locally (optional)
 make docker-test    # build image and run full test suite with coverage
-make docker-lint    # ruff check + mypy inside Docker
-make lint-all       # lint + typecheck (alias)
+make lint           # ruff check (via Docker)
+make typecheck      # mypy --strict (via Docker)
+make lint-all       # lint + typecheck
 make pre-commit     # run all pre-commit hooks on every file
 ```
 
