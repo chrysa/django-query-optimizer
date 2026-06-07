@@ -10,6 +10,11 @@ repos:
           - id: check-merge-conflict
           - id: detect-private-key
 
+          - id: check-json
+          - args:
+                - --branch
+                - main
+            id: no-commit-to-branch
     - repo: https://github.com/astral-sh/ruff-pre-commit
       rev: v0.15.16
       hooks:
@@ -27,7 +32,7 @@ repos:
             args: [--config-file, pyproject.toml]
 
     - repo: https://github.com/chrysa/pre-commit-tools
-      rev: v0.1.1-92
+      rev: v0.1.1-93
       hooks:
           - id: adr-gate
           - id: python-print-detection
@@ -39,6 +44,14 @@ repos:
           - id: dockerfile-no-latest
           - id: regression-gate
             stages: [pre-push]
+          - exclude: ^(\.github/|workflows/|templates/)
+            id: yaml-sorter
+          - id: json-sorter
+          - id: env-file-check
+          - id: env-example-sync
+          - id: python-unreachable-code
+          - id: no-hardcoded-localhost
+            exclude: 'tests?/|\.test\.|\.spec\.'
 
     - repo: https://github.com/compilerla/conventional-pre-commit
       rev: v4.4.0
@@ -46,3 +59,15 @@ repos:
           - id: conventional-pre-commit
             stages: [commit-msg]
             args: [feat, fix, docs, style, refactor, test, chore, perf, revert, ci]
+    - repo: https://github.com/igorshubovych/markdownlint-cli
+      rev: v0.48.0
+      hooks:
+          - args:
+                - --fix
+            id: markdownlint
+            stages:
+                - manual
+    - repo: https://github.com/gitleaks/gitleaks
+      rev: v8.30.0
+      hooks:
+          - id: gitleaks
