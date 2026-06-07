@@ -1,4 +1,5 @@
 #!make
+# makefile-tier: python-app
 ifneq (,)
 	$(error This Makefile requires GNU Make)
 endif
@@ -104,3 +105,6 @@ clean: ## Remove build artifacts and caches
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
 	rm -rf .pytest_cache .mypy_cache .ruff_cache dist build $(REPORTS_DIR)
+
+# ─── CI gate ────────────────────────────────────
+ci: lint typecheck test ## Run the full local gate (lint + typecheck + test)
