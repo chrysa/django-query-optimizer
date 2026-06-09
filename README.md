@@ -7,8 +7,21 @@
 
 Intelligent ORM analysis and optimization platform for Django.
 
-Detects N+1 queries, duplicate queries, slow queries, missing indexes, and more — directly in
-Django Admin, your test suite, and VS Code.
+Detects N+1 queries, duplicate queries, slow queries, and missing `select_related` — directly in
+Django Admin, your test suite, and (via SARIF) your editor's Problems panel.
+
+**Who it's for:** Django developers who want to catch ORM performance regressions
+*before* they ship — locally while clicking through Admin, and automatically in CI
+through pytest fixtures that fail a test when a view runs too many queries or scores
+poorly on query health.
+
+**Why:** ORM performance bugs (especially N+1) are invisible in code review and only
+show up under production load. This library surfaces them at the call-site, with a
+concrete ORM fix and a 0-100 health score, while you still have the test running.
+
+A runnable end-to-end demo lives in [`examples/demo/`](examples/demo/) — a tiny Django
+project with a naive vs. optimized view, the Admin dashboard, and failing/passing
+pytest cases.
 
 ---
 
@@ -21,7 +34,10 @@ Django Admin, your test suite, and VS Code.
 5. [Public API](#public-api)
    - [QueryCollector](#querycollector)
    - [QueryAnalyzer](#queryanalyzer)
+   - [QueryScorer & QueryScore](#queryscorer--queryscore)
+   - [RegressionDetector](#regressiondetector)
    - [ORMRecommendation & Severity](#ormrecommendation--severity)
+   - [QueryOptimizerMiddleware](#queryoptimizermiddleware)
    - [install()](#install)
 6. [pytest Integration](#pytest-integration)
 7. [Configuration](#configuration)
@@ -251,6 +267,61 @@ recommendations = analyzer.analyze()
 | `missing_select_related` | `SelectRelatedDetector` | MEDIUM / HIGH | FK lookup repeated from same call-site |
 | `drf_n_plus_one` | `DRFSerializerDetector` | MEDIUM / HIGH | Repeated SQL originating from DRF serializer code |
 
+`QueryAnalyzer` also exposes `.score() -> QueryScore`, a shortcut that runs `analyze()`
+and feeds the result straight into `QueryScorer` (see below).
+
+---
+
+### QueryScorer & QueryScore
+
+```python
+from django_query_optimizer import QueryScorer, QueryScore
+```
+
+Turns a `list[ORMRecommendation]` into a single **health score** (0-100) and letter
+grade. A clean run scores **100**; each recommendation subtracts points by severity
+(CRITICAL 25, HIGH 15, MEDIUM 8, LOW 4, INFO 1), clamped to `[0, 100]`.
+
+```python
+score = QueryScorer(analyzer.analyze()).compute()  # or: analyzer.score()
+print(score.value)    # e.g. 77
+print(score.grade)    # "B"   (A ≥90, B ≥75, C ≥50, D ≥25, F <25)
+print(score.summary)  # "Score 77/100 (B) — 2 issue(s): 1 high, 1 medium"
+print(score.counts)   # {"critical": 0, "high": 1, "medium": 1, "low": 0, "info": 0}
+```
+
+`QueryScore` is a frozen dataclass with fields `value: int`, `grade: str`,
+`summary: str`, `counts: dict[str, int]`.
+
+---
+
+### RegressionDetector
+
+```python
+from django_query_optimizer import RegressionDetector, RegressionResult
+```
+
+Persists a `QueryScore` to a JSON baseline (commit it to the repo) and compares later
+runs against it, so CI can fail when query health drops. A drop larger than
+`REGRESSION_THRESHOLD` (default **5** points) sets `is_regression = True`.
+
+```python
+from pathlib import Path
+
+detector = RegressionDetector()
+baseline_path = Path(".query-optimizer-baseline.json")
+current = analyzer.score()
+
+if baseline_path.exists():
+    result = detector.compare(detector.load_baseline(baseline_path), current)
+    if result.is_regression:
+        raise SystemExit(result.message)   # result.score_delta is negative
+else:
+    detector.save_baseline(current, baseline_path)
+```
+
+`RegressionResult` fields: `is_regression: bool`, `score_delta: int`, `message: str`.
+
 ---
 
 ### ORMRecommendation & Severity
@@ -359,7 +430,43 @@ def test_no_slow_queries(client, query_collector):
 
 The `query_collector` fixture is **function-scoped**: each test gets a fresh collector.
 
-### Flag: `--sarif-output FILE` _(Phase 4 — in progress)_
+### Assertion fixtures
+
+For common cases the plugin ships ready-made assertion fixtures (each returns a
+callable; all build on `query_collector`, so they're function-scoped too):
+
+| Fixture | Call | Fails when |
+|---|---|---|
+| `assert_no_queries` | `assert_no_queries()` | any SQL query was executed |
+| `assert_max_queries` | `assert_max_queries(n)` | more than `n` queries were executed |
+| `assert_query_health` | `assert_query_health(min_score=80)` | health score `< min_score`; returns the `QueryScore` |
+
+```python
+def test_cache_hit(client, assert_no_queries):
+    populate_cache()
+    client.get("/api/cached/")
+    assert_no_queries()
+
+def test_order_list(client, assert_max_queries):
+    client.get("/api/orders/")
+    assert_max_queries(3)
+
+def test_order_view_health(client, assert_query_health):
+    client.get("/api/orders/")
+    score = assert_query_health(min_score=80)
+    assert score.grade in ("A", "B")
+```
+
+### Flag: `--query-min-score N`
+
+When combined with `--query-analysis`, fail any test whose query health score falls
+below `N` (0-100). Default `0` disables enforcement.
+
+```bash
+pytest --query-analysis --query-min-score 80
+```
+
+### Flag: `--sarif-output FILE`
 
 Write a [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html)
 report at the end of the test session. Requires `--query-analysis`.
