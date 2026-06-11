@@ -64,6 +64,12 @@ Changelog = "https://github.com/chrysa/django-query-optimizer/blob/main/CHANGELO
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+# Ship non-Python data files in the wheel/sdist. setuptools defaults to .py only,
+# which silently drops the admin template (TemplateDoesNotExist on install) and
+# the PEP 561 marker. setuptools>=70 (pinned in build-system) supports ** globs.
+django_query_optimizer = ["py.typed", "templates/**/*.html"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
