@@ -13,35 +13,36 @@ Public API surface:
 
 from __future__ import annotations
 
-from django_query_optimizer._internal.version import __version__
-from django_query_optimizer.analyzers.query_analyzer import QueryAnalyzer
-from django_query_optimizer.collectors.query_collector import QueryCollector
-from django_query_optimizer.detectors.drf_serializer import DRFSerializerDetector
-from django_query_optimizer.detectors.n_plus_one import NplusOneDetector
-from django_query_optimizer.detectors.select_related import SelectRelatedDetector
-from django_query_optimizer.middleware.query_collector_middleware import QueryOptimizerMiddleware
-from django_query_optimizer.recommendations.base import ORMRecommendation
-from django_query_optimizer.regression.detector import RegressionDetector, RegressionResult
-from django_query_optimizer.reporting.sarif import SARIFReporter
-from django_query_optimizer.scoring.query_scorer import QueryScore, QueryScorer
-from django_query_optimizer.store import QueryStore, RequestRecord
+from ._internal.version import __version__
+from .analyzers.query_analyzer import QueryAnalyzer
+from .collectors.query_collector import QueryCollector
+from .detectors.drf_serializer import DRFSerializerDetector
+from .detectors.n_plus_one import NplusOneDetector
+from .detectors.select_related import SelectRelatedDetector
+from .middleware.query_collector_middleware import QueryOptimizerMiddleware
+from .recommendations.base import ORMRecommendation, Severity
+from .regression.detector import RegressionDetector, RegressionResult
+from .reporting.sarif import SARIFReporter
+from .scoring.query_scorer import QueryScore, QueryScorer
+from .store import QueryStore, RequestRecord
 
 __all__ = [
     "__version__",
-    "QueryCollector",
-    "QueryAnalyzer",
     "DRFSerializerDetector",
     "NplusOneDetector",
-    "SelectRelatedDetector",
     "ORMRecommendation",
+    "QueryAnalyzer",
+    "QueryCollector",
     "QueryOptimizerMiddleware",
     "QueryScore",
     "QueryScorer",
     "QueryStore",
-    "RequestRecord",
     "RegressionDetector",
     "RegressionResult",
+    "RequestRecord",
     "SARIFReporter",
+    "SelectRelatedDetector",
+    "Severity",
     "install",
 ]
 
