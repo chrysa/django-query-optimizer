@@ -1,6 +1,6 @@
+name: django-query-optimizer
 services:
   lint:
-    container_name: dqo-lint
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,7 +10,6 @@ services:
       - PYTHONUNBUFFERED=1
 
   test:
-    container_name: dqo-test
     build:
       context: .
       dockerfile: Dockerfile
