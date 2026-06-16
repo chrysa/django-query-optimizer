@@ -158,8 +158,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         type=str,
         default=None,
         metavar="FILE",
-        help="Write ORM findings as a SARIF 2.1.0 report to FILE at session end. "
-        "Requires --query-analysis.",
+        help="Write ORM findings as a SARIF 2.1.0 report to FILE at session end. Requires --query-analysis.",
     )
 
 
