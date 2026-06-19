@@ -1,4 +1,4 @@
-# Contributing to django-query-optimizer
+# Contributing to target
 
 Thanks for contributing. This repo follows the chrysa
 [Execution Standard](https://github.com/chrysa/shared-standards/blob/main/EXECUTION_STANDARD.md).
