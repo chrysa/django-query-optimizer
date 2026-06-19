@@ -61,7 +61,7 @@ repos:
             stages: [commit-msg]
             args: [feat, fix, docs, style, refactor, test, chore, perf, revert, ci]
     - repo: https://github.com/igorshubovych/markdownlint-cli
-      rev: v0.48.0
+      rev: v0.49.0
       hooks:
           - args:
                 - --fix
