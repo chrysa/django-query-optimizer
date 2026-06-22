@@ -17,3 +17,6 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+    volumes:
+      # Surface coverage.xml on the host so CI can upload it to SonarCloud.
+      - ./coverage.xml:/app/coverage.xml

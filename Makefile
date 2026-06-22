@@ -69,8 +69,14 @@ dev: ## Start development environment (alias → docker-up)
 	$(MAKE) docker-up
 
 docker-test: ## Build and run tests via Docker (CI target)
+	@# Pre-create coverage.xml as a file so the bind-mount maps file->file
+	@# (Docker auto-creates a *directory* for a missing bind source, which
+	@# then makes coverage's open(path,"w") fail). -T disables the pseudo-TTY
+	@# so this also runs in CI / non-interactive contexts.
+	@rm -rf coverage.xml
+	@touch coverage.xml
 	$(DC) build test
-	$(DC_RUN) test
+	$(DC_RUN) -T test
 
 test-fast: ## Run tests without coverage (fast, via Docker)
 	$(DC_RUN) test sh -c "pytest $(TESTS_DIR) -v"
