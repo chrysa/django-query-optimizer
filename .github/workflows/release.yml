@@ -32,7 +32,7 @@ jobs:
 
             - name: Determine version
               id: gitversion
-              uses: chrysa/github-actions/gitversion@v1.1.3
+              uses: chrysa/github-actions/gitversion@v1.2.1
 
             - name: Check if version tag already exists
               id: tag-check
@@ -71,7 +71,7 @@ jobs:
               run: git-cliff -o CHANGELOG.md
 
             - name: Build & publish to PyPI
-              uses: chrysa/github-actions/publish-python-package@v1.1.3
+              uses: chrysa/github-actions/publish-python-package@v1.2.1
               with:
                   pypi-token: ${{ secrets.PYPI_TOKEN }}
                   build-backend: setuptools
