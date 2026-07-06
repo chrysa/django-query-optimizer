@@ -26,13 +26,13 @@ jobs:
             preReleaseTag: ${{ steps.gitversion.outputs.preReleaseTag }}
             should-release: ${{ steps.tag-check.outputs.should-release }}
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7.0.0
               with:
                   fetch-depth: 0
 
             - name: Determine version
               id: gitversion
-              uses: chrysa/github-actions/gitversion@v1
+              uses: chrysa/github-actions/gitversion@v1.2.3
 
             - name: Check if version tag already exists
               id: tag-check
@@ -54,7 +54,7 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 20
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7.0.0
               with:
                   fetch-depth: 0
                   token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
@@ -71,7 +71,7 @@ jobs:
               run: git-cliff -o CHANGELOG.md
 
             - name: Build & publish to PyPI
-              uses: chrysa/github-actions/publish-python-package@v1
+              uses: chrysa/github-actions/publish-python-package@v1.2.3
               with:
                   pypi-token: ${{ secrets.PYPI_TOKEN }}
                   build-backend: setuptools

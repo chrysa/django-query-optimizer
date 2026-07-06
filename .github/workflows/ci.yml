@@ -29,9 +29,9 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 15
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7.0.0
 
-            - uses: chrysa/github-actions/python-setup@v1
+            - uses: chrysa/github-actions/python-setup@v1.2.3
               with:
                   python-version: "3.14"
                   cache: pip
@@ -45,23 +45,23 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 15
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7.0.0
 
             - name: Setup environment
-              uses: chrysa/github-actions/tool-setup@v1
+              uses: chrysa/github-actions/tool-setup@v1.2.3
               with:
                   python-version: "3.14"
                   extras: "dev,postgres,drf"
 
             - name: Ruff checks
-              uses: chrysa/github-actions/ruff-check@v1
+              uses: chrysa/github-actions/ruff-check@v1.2.3
               with:
                   python-version: "3.14"
                   latest-python: "3.14"
                   sources: "src/django_query_optimizer tests"
 
             - name: Mypy checks
-              uses: chrysa/github-actions/mypy-check@v1
+              uses: chrysa/github-actions/mypy-check@v1.2.3
               with:
                   python-version: "3.14"
                   latest-python: "3.14"
@@ -74,10 +74,21 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 20
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7.0.0
 
             - name: Run tests via Docker
               run: make docker-test
+
+            # Coverage is generated in the test job; the sonar job runs on a
+            # separate runner, so the report must travel as an artifact named
+            # test-results-<python-version> (what sonar-scan-python downloads).
+            - name: Upload coverage report
+              if: always()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: test-results-3.14
+                  path: coverage.xml
+                  if-no-files-found: warn
 
     sarif:
         name: Upload SARIF to GitHub Code Scanning
@@ -88,10 +99,10 @@ jobs:
             contents: read
             security-events: write
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7.0.0
 
             - name: Setup environment
-              uses: chrysa/github-actions/tool-setup@v1
+              uses: chrysa/github-actions/tool-setup@v1.2.3
               with:
                   python-version: "3.14"
                   extras: "dev,postgres,drf"
@@ -112,7 +123,7 @@ jobs:
                   DJANGO_SETTINGS_MODULE: tests.settings
 
             - name: Upload SARIF to GitHub Code Scanning
-              uses: github/codeql-action/upload-sarif@v3
+              uses: github/codeql-action/upload-sarif@v4.36.2
               with:
                   sarif_file: query-results.sarif
                   category: django-query-optimizer
@@ -127,11 +138,11 @@ jobs:
             contents: read
             pull-requests: read
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7.0.0
               with:
                   fetch-depth: 0
 
-            - uses: chrysa/github-actions/sonar-scan-python@v1.1.0
+            - uses: chrysa/github-actions/sonar-scan-python@v1.2.3
               with:
                   python-version: "3.14"
                   sonar-token: ${{ secrets.SONAR_TOKEN }}
@@ -141,4 +152,5 @@ jobs:
                   project-name: django-query-optimizer
                   sources: src
                   tests: tests
-                  coverage-report: coverage.xml
+                  # Downloaded from the test-results-3.14 artifact into reports/.
+                  coverage-report: reports/coverage.xml
