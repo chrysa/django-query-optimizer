@@ -40,7 +40,7 @@ dependencies = ["django>=4.2"]
 [project.optional-dependencies]
 postgres = ["psycopg2-binary>=2.9"]
 drf = ["djangorestframework>=3.14"]
-realtime = ["channels>=4.0", "daphne>=4.0"]
+realtime = ["channels>=4.0", "daphne>=4.2.2"]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
