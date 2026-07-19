@@ -53,3 +53,18 @@ USER appuser
 HEALTHCHECK CMD python -c "import django_query_optimizer; print('ok')" || exit 1
 
 CMD ["python", "-c", "import django_query_optimizer; print(django_query_optimizer.__version__)"]
+
+# ── Stage 5: dev — production image + test/lint/debug tooling ──────────────────
+FROM production AS dev
+
+USER root
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+COPY tests/ ./tests/
+
+# Editable install with the full dev/test/lint toolchain on top of production.
+RUN pip install --no-cache-dir -e ".[dev,postgres,drf]"
+
+CMD ["sh", "-c", "pytest tests/ -v"]

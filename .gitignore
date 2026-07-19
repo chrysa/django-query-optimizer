@@ -23,3 +23,52 @@ htmlcov/
 graphify
 sys
 graphify-out/
+
+# ---8<--- chrysa:canonical:begin (managed — do not edit inside this block) --->8---
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.benchmarks/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+
+# Node / frontend
+node_modules/
+.svelte-kit/
+.turbo/
+.vite/
+*.tsbuildinfo
+
+# Test / e2e output
+test-results/
+playwright-report/
+.playwright-mcp/
+
+# Local dev tooling caches (knowledge graph / code index)
+graphify-out/
+.codegraph/
+.import_linter_cache/
+
+# Claude Code local state
+.claude/worktrees/
+.claude/settings.local.json
+.claude/*.local.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# ---8<--- chrysa:canonical:end --->8---
