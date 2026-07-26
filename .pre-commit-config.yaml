@@ -89,3 +89,7 @@ repos:
   rev: v8.30.1
   hooks:
   - id: gitleaks
+- repo: https://github.com/chrysa/guideline-checker
+  rev: v1.15.0
+  hooks:
+  - id: guideline-check
