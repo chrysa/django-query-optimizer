@@ -24,11 +24,6 @@ graphify
 sys
 graphify-out/
 
-# chrysa canonical .gitignore — source of truth
-# Source: chrysa/shared-standards/templates/gitignore.canonical
-# Appended (not overwritten) into each repo's .gitignore by project-init and
-# scripts/purge-artifacts.sh. Every entry here is a regenerable machine artifact,
-# never source. Repo-specific ignores live ABOVE the managed block in each repo.
 # ---8<--- chrysa:canonical:begin (managed — do not edit inside this block) --->8---
 
 # Python

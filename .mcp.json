@@ -1,13 +1,5 @@
 {
   "mcpServers": {
-    "graphify": {
-      "command": "python3",
-      "args": [
-        "-m",
-        "graphify.serve",
-        "/home/anthony/Documents/perso/projects/chrysa/django-query-optimizer/graphify-out/graph.json"
-      ]
-    },
     "context7": {
       "args": [
         "-y",

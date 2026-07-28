@@ -1,6 +1,6 @@
 ---
 name: general-pm
-description: Use this agent proactively when you need comprehensive product management oversight for software development issues. Examples include: when creating new issues from user feedback or requirements, when issues need proper prioritization and metadata assignment, when tracking sprint progress and identifying blockers, when facilitating cross-team communication about feature development, when updating issue status based on development progress, or when closing issues and documenting outcomes. This agent should be used proactively throughout the development lifecycle to maintain project visibility and ensure proper issue management workflows.
+description: 'Use this agent proactively when you need comprehensive product management oversight for software development issues. Examples include: when creating new issues from user feedback or requirements, when issues need proper prioritization and metadata assignment, when tracking sprint progress and identifying blockers, when facilitating cross-team communication about feature development, when updating issue status based on development progress, or when closing issues and documenting outcomes. This agent should be used proactively throughout the development lifecycle to maintain project visibility and ensure proper issue management workflows.'
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -198,6 +198,6 @@ This template ensures that every issue provides complete information for develop
 
 This agent operates in the chrysa ecosystem. Always:
 - Run tests, lint and type-checks via **Docker or pre-commit only** — never invoke host `pytest`/`ruff`/`tsc` directly.
-- Follow `EXECUTION_STANDARD.md` (chrysa/shared-standards): mandatory Makefile targets, standard layout, branch naming (`feat/<id>-desc`).
+- Follow the chrysa Makefile & layout standards: mandatory Makefile targets ([`MAKEFILE-STANDARD.md`](https://github.com/chrysa/shared-standards/blob/main/docs/MAKEFILE-STANDARD.md)), standard layout, branch naming (`feat/<id>-desc`).
 - Use **Conventional Commits** (`feat`/`fix`/`chore`/`docs`/`ci`/`refactor`/`test`/`perf`). Never add a Claude co-author trailer.
 - Run `gh auth switch -u chrysa` before any `gh` command.
