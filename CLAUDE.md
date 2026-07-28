@@ -77,8 +77,7 @@ src/django_query_optimizer/
 
 ```bash
 make docker-test    # full test suite + coverage (CI target)
-make docker-lint    # ruff check + mypy
-make lint-all       # lint + typecheck (alias)
+make lint-all       # ruff check + mypy (lint + typecheck)
 make pre-commit     # run all pre-commit hooks on every file
 make install-dev    # local dev install (not for test execution)
 ```
@@ -132,7 +131,6 @@ Coverage threshold: **85%** (enforced by `pytest-cov` with `fail_under = 85`).
 - All type annotations must pass `mypy --strict`.
 - Commit identity: `user.name=chrysa`, `user.email=greau.anthony+chrysa@gmail.com`.
 
-## Skills
 
 - `testing-pytest/SKILL.md` — pytest DDD + pytest-mock + constants (load when writing tests)
 
