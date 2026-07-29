@@ -35,7 +35,7 @@ repos:
     - --config-file
     - pyproject.toml
 - repo: https://github.com/chrysa/pre-commit-tools
-  rev: v0.1.1-99
+  rev: v0.1.1-100
   hooks:
   - id: makefile-check
   - id: adr-gate
@@ -61,6 +61,7 @@ repos:
   - id: claude-agent-frontmatter
   - id: claude-mcp-config
   - id: python-no-unittest-import
+  - id: claude-assets-present
 - repo: https://github.com/compilerla/conventional-pre-commit
   rev: v4.4.0
   hooks:
