@@ -10,6 +10,7 @@ services:
       - PYTHONUNBUFFERED=1
 
   test:
+    user: "${UID:-1000}:${GID:-1000}"
     build:
       context: .
       dockerfile: Dockerfile
