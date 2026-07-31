@@ -1,3 +1,8 @@
+# A push verifies, it never mutates: only hooks explicitly tagged `pre-push` run at
+# push time. Without this, every untagged hook (ruff format, the detect-* family)
+# also runs there, rewrites untouched files and rejects the push over pre-existing
+# debt. See the chrysa standards, "Pre-commit & git hooks".
+default_stages: [pre-commit]
 exclude: ^\.claude/
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -92,6 +97,6 @@ repos:
   hooks:
   - id: gitleaks
 - repo: https://github.com/chrysa/guideline-checker
-  rev: v1.30.10
+  rev: v1.30.16
   hooks:
   - id: guideline-check
