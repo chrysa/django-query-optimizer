@@ -65,7 +65,7 @@ jobs:
                   git config user.email 'greau.anthony+chrysa@gmail.com'
 
             - name: Install git-cliff
-              uses: taiki-e/install-action@git-cliff
+              uses: taiki-e/install-action@3f99142a47f5f35fcd7322b74947248526d32622 # git-cliff
 
             - name: Generate changelog
               run: git-cliff -o CHANGELOG.md
@@ -85,7 +85,7 @@ jobs:
                   git push origin HEAD --tags
 
             - name: Create GitHub Release
-              uses: softprops/action-gh-release@v3.0.2
+              uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
               with:
                   tag_name: v${{ needs.version.outputs.majorMinorPatch }}
                   body_path: CHANGELOG.md
