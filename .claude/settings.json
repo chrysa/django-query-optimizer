@@ -11,7 +11,7 @@
     ],
     "PostToolUse": [
       {
-        "command": "node .claude/hooks/verifiable-thresholds.cjs",
+        "command": "sh -c 'f=\"$CLAUDE_PROJECT_DIR/.claude/hooks/verifiable-thresholds.cjs\"; [ ! -f \"$f\" ] || node \"$f\"'",
         "matcher": "Write|Edit|MultiEdit",
         "name": "verifiable-thresholds",
         "timeout": 10000
@@ -26,13 +26,13 @@
     ],
     "PreToolUse": [
       {
-        "command": "node .claude/hooks/secret-scanner.cjs",
+        "command": "sh -c 'f=\"$CLAUDE_PROJECT_DIR/.claude/hooks/secret-scanner.cjs\"; [ ! -f \"$f\" ] || node \"$f\"'",
         "matcher": "Bash",
         "name": "secret-scanner",
         "timeout": 10000
       },
       {
-        "command": "node .claude/hooks/circuit-breaker.cjs",
+        "command": "sh -c 'f=\"$CLAUDE_PROJECT_DIR/.claude/hooks/circuit-breaker.cjs\"; [ ! -f \"$f\" ] || node \"$f\"'",
         "matcher": "Bash",
         "name": "circuit-breaker",
         "timeout": 5000
@@ -49,7 +49,7 @@
     ],
     "UserPromptSubmit": [
       {
-        "command": "node .claude/hooks/frustration-detection.cjs",
+        "command": "sh -c 'f=\"$CLAUDE_PROJECT_DIR/.claude/hooks/frustration-detection.cjs\"; [ ! -f \"$f\" ] || node \"$f\"'",
         "matcher": "*",
         "name": "frustration-detection",
         "timeout": 5000
