@@ -36,7 +36,7 @@ jobs:
                   python-version: "3.14"
                   cache: pip
 
-            - uses: pre-commit/action@v3.0.1
+            - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
               env:
                   SKIP: no-commit-to-branch
 
@@ -123,7 +123,7 @@ jobs:
                   DJANGO_SETTINGS_MODULE: tests.settings
 
             - name: Upload SARIF to GitHub Code Scanning
-              uses: github/codeql-action/upload-sarif@v4.37.3
+              uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
               with:
                   sarif_file: query-results.sarif
                   category: django-query-optimizer
