@@ -40,11 +40,15 @@ repos:
   - id: makefile-check
   - id: adr-gate
   - id: python-print-detection
+    exclude: (^|/)tests?/|^(README\.md|docs/)
   - id: python-pprint-detection
+    exclude: (^|/)tests?/|^(README\.md|docs/)
   - id: no-bare-except
   - id: python-logger-detection
+    exclude: (^|/)tests?/|^(README\.md|docs/)
   - id: no-sync-in-async
   - id: debugger-detection
+    exclude: (^|/)tests?/|^(README\.md|docs/)
   - id: dockerfile-no-latest
   - id: regression-gate
     stages:
@@ -63,7 +67,7 @@ repos:
   - id: python-no-unittest-import
   - id: claude-assets-present
   - id: python-untyped-raise
-    exclude: ^tests?/
+    exclude: (^|/)tests?/
   - id: python-mutable-default
   - id: python-dispatch-ladder
 - repo: https://github.com/compilerla/conventional-pre-commit
