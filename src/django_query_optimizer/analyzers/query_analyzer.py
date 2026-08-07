@@ -91,22 +91,18 @@ class QueryAnalyzer:
 
     def _detect_slow_queries(self) -> list[ORMRecommendation]:
         """Flag queries that exceed the slow-query threshold."""
-        results: list[ORMRecommendation] = []
-        for query in self._queries:
-            if query.duration_ms >= SLOW_QUERY_THRESHOLD_MS:
-                results.append(
-                    ORMRecommendation(
-                        issue_type="slow_query",
-                        severity=Severity.HIGH,
-                        message=(f"Query took {query.duration_ms:.1f} ms (threshold: {SLOW_QUERY_THRESHOLD_MS} ms)"),
-                        suggestion=(
-                            "Consider adding a database index, using only() / values(), or caching the result."
-                        ),
-                        python_file=query.python_file,
-                        python_line=query.python_line,
-                    )
-                )
-        return results
+        return [
+            ORMRecommendation(
+                issue_type="slow_query",
+                severity=Severity.HIGH,
+                message=(f"Query took {query.duration_ms:.1f} ms (threshold: {SLOW_QUERY_THRESHOLD_MS} ms)"),
+                suggestion=("Consider adding a database index, using only() / values(), or caching the result."),
+                python_file=query.python_file,
+                python_line=query.python_line,
+            )
+            for query in self._queries
+            if query.duration_ms >= SLOW_QUERY_THRESHOLD_MS
+        ]
 
     def _detect_duplicate_queries(self) -> list[ORMRecommendation]:
         """Detect queries whose SQL is executed more than once."""
