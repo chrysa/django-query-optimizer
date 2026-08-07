@@ -35,7 +35,7 @@ repos:
     - --config-file
     - pyproject.toml
 - repo: https://github.com/chrysa/pre-commit-tools
-  rev: v0.2.0-253
+  rev: v0.2.0-247
   hooks:
   - id: makefile-check
   - id: adr-gate
