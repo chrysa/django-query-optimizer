@@ -27,7 +27,6 @@ from .scoring.query_scorer import QueryScore, QueryScorer
 from .store import QueryStore, RequestRecord
 
 __all__ = [
-    "__version__",
     "DRFSerializerDetector",
     "NplusOneDetector",
     "ORMRecommendation",
@@ -43,6 +42,7 @@ __all__ = [
     "SARIFReporter",
     "SelectRelatedDetector",
     "Severity",
+    "__version__",
     "install",
 ]
 

@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from django.db import migrations
 
 
@@ -10,9 +12,9 @@ class Migration(migrations.Migration):
     """
 
     initial = True
-    dependencies = []
+    dependencies: ClassVar[list] = []
 
-    operations = [
+    operations: ClassVar[list] = [
         migrations.CreateModel(
             name="QueryLog",
             fields=[],

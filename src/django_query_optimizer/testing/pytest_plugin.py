@@ -248,7 +248,7 @@ def _collect_recommendations_for_sarif(
     _SESSION_RECOMMENDATIONS.extend(recs)
 
 
-def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:  # noqa: ARG001
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     """Write the accumulated SARIF report at the end of the session."""
     sarif_path: str | None = session.config.getoption("--sarif-output", default=None)
     if sarif_path is None:
