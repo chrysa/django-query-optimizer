@@ -53,6 +53,9 @@ jobs:
         if: needs.version.outputs.should-release == 'true' && needs.version.outputs.preReleaseTag == ''
         runs-on: ubuntu-latest
         timeout-minutes: 20
+        permissions:
+            contents: write
+            id-token: write
         steps:
             - uses: actions/checkout@v7.0.1
               with:
@@ -70,11 +73,17 @@ jobs:
             - name: Generate changelog
               run: git-cliff -o CHANGELOG.md
 
-            - name: Build & publish to PyPI
-              uses: chrysa/github-actions/publish-python-package@v1.4.4
+            - name: Set up Python
+              uses: actions/setup-python@v6
               with:
-                  pypi-token: ${{ secrets.PYPI_TOKEN }}
-                  build-backend: setuptools
+                  python-version: '3.14'
+
+            - name: Build distribution
+              shell: bash
+              run: pipx run build
+
+            - name: Publish to PyPI (OIDC Trusted Publishing)
+              uses: pypa/gh-action-pypi-publish@release/v1
 
             - name: Tag & push release
               run: |
