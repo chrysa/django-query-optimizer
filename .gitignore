@@ -72,3 +72,4 @@ graphify-out/
 Thumbs.db
 
 # ---8<--- chrysa:canonical:end --->8---
+.claude/memory/session.md
