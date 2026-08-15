@@ -89,16 +89,19 @@ class NplusOneDetector:
     * ``>= N_PLUS_ONE_MIN_COUNT``      → MEDIUM
     """
 
-    def detect(self, queries: list[CapturedQuery]) -> list[ORMRecommendation]:
-        """Return N+1 recommendations for the given query list."""
-        groups: dict[tuple[str, str, int], list[CapturedQuery]] = defaultdict(list)
+    @staticmethod
+    def _group(queries: list[CapturedQuery]) -> dict[tuple[str, str, int], int]:
+        """Count queries grouped by (normalised SQL, python_file, python_line)."""
+        counts: dict[tuple[str, str, int], int] = defaultdict(int)
         for query in queries:
             key = (normalize_sql(query.sql), query.python_file, query.python_line)
-            groups[key].append(query)
+            counts[key] += 1
+        return counts
 
+    def detect(self, queries: list[CapturedQuery]) -> list[ORMRecommendation]:
+        """Return N+1 recommendations for the given query list."""
         results: list[ORMRecommendation] = []
-        for (normalized, py_file, py_line), group_queries in groups.items():
-            count = len(group_queries)
+        for (normalized, py_file, py_line), count in self._group(queries).items():
             if count < N_PLUS_ONE_MIN_COUNT:
                 continue
 
@@ -126,3 +129,15 @@ class NplusOneDetector:
             )
 
         return results
+
+    def flagged_patterns(self, queries: list[CapturedQuery]) -> frozenset[str]:
+        """Return the normalised SQL patterns that :meth:`detect` would flag.
+
+        Lets an orchestrator (e.g. ``QueryAnalyzer``) suppress overlapping
+        exact-duplicate recommendations for the same root cause.
+        """
+        return frozenset(
+            normalized
+            for (normalized, _py_file, _py_line), count in self._group(queries).items()
+            if count >= N_PLUS_ONE_MIN_COUNT
+        )

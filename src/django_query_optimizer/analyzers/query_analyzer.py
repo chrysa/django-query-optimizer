@@ -38,7 +38,7 @@ from __future__ import annotations
 from collections import Counter
 
 from django_query_optimizer.collectors.query_collector import CapturedQuery
-from django_query_optimizer.detectors.n_plus_one import NplusOneDetector
+from django_query_optimizer.detectors.n_plus_one import NplusOneDetector, normalize_sql
 from django_query_optimizer.detectors.select_related import SelectRelatedDetector
 from django_query_optimizer.recommendations.base import ORMRecommendation, Severity
 from django_query_optimizer.scoring.query_scorer import QueryScore, QueryScorer
@@ -69,8 +69,16 @@ class QueryAnalyzer:
         """Run all detectors and return sorted recommendations (most severe first)."""
         recommendations: list[ORMRecommendation] = []
         recommendations.extend(self._detect_slow_queries())
-        recommendations.extend(self._detect_duplicate_queries())
-        recommendations.extend(NplusOneDetector().detect(self._queries))
+
+        # N+1 is the more specific diagnosis (carries the call site and escalates
+        # severity by repetition count). Any SQL pattern it already flags is
+        # excluded from the exact-duplicate detector so a single root cause does
+        # not surface as two overlapping recommendations.
+        detector = NplusOneDetector()
+        recommendations.extend(detector.detect(self._queries))
+        recommendations.extend(
+            self._detect_duplicate_queries(exclude=detector.flagged_patterns(self._queries))
+        )
         recommendations.extend(SelectRelatedDetector().detect(self._queries))
         return sorted(recommendations)
 
@@ -104,11 +112,19 @@ class QueryAnalyzer:
             if query.duration_ms >= SLOW_QUERY_THRESHOLD_MS
         ]
 
-    def _detect_duplicate_queries(self) -> list[ORMRecommendation]:
-        """Detect queries whose SQL is executed more than once."""
+    def _detect_duplicate_queries(
+        self, exclude: frozenset[str] = frozenset()
+    ) -> list[ORMRecommendation]:
+        """Detect queries whose SQL is executed more than once.
+
+        SQL whose normalised pattern is in *exclude* is skipped: it has already
+        been reported as an N+1 issue, which is the more specific diagnosis.
+        """
         results: list[ORMRecommendation] = []
         counts = Counter(q.sql for q in self._queries)
         for sql, count in counts.items():
+            if normalize_sql(sql) in exclude:
+                continue
             if count >= DUPLICATE_MIN_COUNT:
                 results.append(
                     ORMRecommendation(
