@@ -5,23 +5,35 @@
   "hooks": {
     "Notification": [
       {
-        "command": "notify-send 'Claude Code' '$CLAUDE_NOTIFICATION'",
-        "name": "notify-user-input"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify-send 'Claude Code' '$CLAUDE_NOTIFICATION'"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "command": "sh -c 'f=\"$CLAUDE_PROJECT_DIR/.claude/hooks/verifiable-thresholds.cjs\"; [ ! -f \"$f\" ] || node \"$f\"'",
         "matcher": "Write|Edit|MultiEdit",
-        "name": "verifiable-thresholds",
-        "timeout": 10000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'f=\"$CLAUDE_PROJECT_DIR/.claude/hooks/verifiable-thresholds.cjs\"; [ ! -f \"$f\" ] || node \"$f\"'",
+            "timeout": 10000
+          }
+        ]
       }
     ],
     "PreCompact": [
       {
-        "command": "~/.claude/hooks/pre-compact.sh",
-        "name": "pre-compact",
-        "timeout": 10000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/pre-compact.sh",
+            "timeout": 10000
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -71,10 +83,14 @@
     ],
     "UserPromptSubmit": [
       {
-        "command": "sh -c 'f=\"$CLAUDE_PROJECT_DIR/.claude/hooks/frustration-detection.cjs\"; [ ! -f \"$f\" ] || node \"$f\"'",
         "matcher": "*",
-        "name": "frustration-detection",
-        "timeout": 5000
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'f=\"$CLAUDE_PROJECT_DIR/.claude/hooks/frustration-detection.cjs\"; [ ! -f \"$f\" ] || node \"$f\"'",
+            "timeout": 5000
+          }
+        ]
       },
       {
         "hooks": [

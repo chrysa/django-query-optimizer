@@ -28,8 +28,8 @@ in Django applications — at development time, in the test suite, and in VS Cod
 Current version: **0.1.0** (pre-alpha, unreleased on PyPI).
 
 **Phase 4 repos:**
-- Pytest plugin: PR [#22](https://github.com/chrysa/django-query-optimizer/pull/22) on `feat/phase4-sarif-output`
-- VS Code extension: [`chrysa/django-query-optimizer-vscode`](https://github.com/chrysa/django-query-optimizer-vscode)
+- Pytest plugin `--sarif-output`: PR [#22](https://github.com/chrysa/django-query-optimizer/pull/22) ✅ merged — SARIF prerequisite shipped in this repo.
+- VS Code extension (active dev): [`chrysa/django-query-optimizer-vscode`](https://github.com/chrysa/django-query-optimizer-vscode)
 
 ---
 
