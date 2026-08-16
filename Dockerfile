@@ -16,14 +16,28 @@ RUN pip install --no-cache-dir .
 # ── Stage 2: test — run the full test suite ───────────────────────────────────
 FROM deps AS test
 
+# Runtime UID/GID — must match the compose `user:` so the container process owns
+# /app and can (re)write the setuptools egg-info the wheel-build test regenerates.
+ARG APP_UID=1000
+ARG APP_GID=1000
+
+# Regenerable tool caches live OUTSIDE the /app tree (chrysa: caches never touch
+# the project tree), under a world-writable location that any runtime UID can use.
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHONPYCACHEPREFIX=/tmp/pycache \
+    COVERAGE_FILE=/tmp/.coverage \
+    PYTEST_ADDOPTS="-p no:cacheprovider"
 
 WORKDIR /app
 
 RUN pip install --no-cache-dir -e ".[dev,postgres,drf]"
 
 COPY tests/ ./tests/
+
+# Hand /app to the runtime UID so the egg-info created at build time (root) can be
+# updated at test time by the non-root process compose runs us as.
+RUN chown -R "${APP_UID}:${APP_GID}" /app
 
 CMD ["sh", "-c", "coverage run -m pytest && coverage xml && coverage report --fail-under=85"]
 
