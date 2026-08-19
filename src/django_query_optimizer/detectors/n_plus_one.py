@@ -58,12 +58,17 @@ _LITERAL_RE: Final[re.Pattern[str]] = re.compile(
     re.IGNORECASE,
 )
 
+# Regex that collapses a placeholder list ``(?, ?, ?)`` down to ``(?)`` so that
+# an ``IN`` lookup issued with a varying number of ids normalises to one pattern.
+_IN_LIST_RE: Final[re.Pattern[str]] = re.compile(r"\(\s*\?(?:\s*,\s*\?)*\s*\)")
+
 
 def normalize_sql(sql: str) -> str:
     """Replace all literal values in *sql* with ``?`` and uppercase.
 
-    Two queries that differ only in their WHERE clause values will produce the
-    same normalised form, allowing N+1 detection across parametrised queries.
+    Two queries that differ only in their WHERE clause values — including
+    ``IN (...)`` lookups of different arity — produce the same normalised form,
+    allowing N+1 detection across parametrised queries.
 
     Example::
 
@@ -71,8 +76,11 @@ def normalize_sql(sql: str) -> str:
         'SELECT * FROM BOOK WHERE AUTHOR_ID = ?'
         >>> normalize_sql("SELECT * FROM user WHERE name = 'alice'")
         'SELECT * FROM USER WHERE NAME = ?'
+        >>> normalize_sql("SELECT * FROM t WHERE id IN (1, 2, 3)")
+        'SELECT * FROM T WHERE ID IN (?)'
     """
     normalized = _LITERAL_RE.sub("?", sql)
+    normalized = _IN_LIST_RE.sub("(?)", normalized)
     return " ".join(normalized.split()).upper()
 
 
