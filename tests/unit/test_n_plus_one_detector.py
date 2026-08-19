@@ -92,6 +92,23 @@ class TestNormalizeSql:
         q2 = "SELECT * FROM article WHERE author_id = 1"
         assert normalize_sql(q1) != normalize_sql(q2)
 
+    def test_in_list_collapsed_to_single_placeholder(self) -> None:
+        assert normalize_sql("SELECT * FROM t WHERE id IN (1, 2, 3)") == (
+            "SELECT * FROM T WHERE ID IN (?)"
+        )
+
+    def test_in_lists_of_different_arity_normalise_equal(self) -> None:
+        # A batched IN lookup issued once per loop with a varying number of ids
+        # must collapse to one pattern so the N+1 is not split into two groups.
+        q1 = "SELECT * FROM book WHERE id IN (1, 2)"
+        q2 = "SELECT * FROM book WHERE id IN (7, 8, 9, 10)"
+        assert normalize_sql(q1) == normalize_sql(q2)
+
+    def test_single_element_in_list_preserved(self) -> None:
+        assert normalize_sql("SELECT * FROM t WHERE id IN (1)") == (
+            "SELECT * FROM T WHERE ID IN (?)"
+        )
+
 
 # ── NplusOneDetector — no recommendation cases ───────────────────────────────
 
