@@ -32,7 +32,7 @@ jobs:
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-            - uses: chrysa/github-actions/python-setup@v1.8.0
+            - uses: chrysa/github-actions/python-setup@v1.8.1
               with:
                   python-version: "3.14"
                   cache: pip
@@ -49,20 +49,20 @@ jobs:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
             - name: Setup environment
-              uses: chrysa/github-actions/tool-setup@v1.8.0
+              uses: chrysa/github-actions/tool-setup@v1.8.1
               with:
                   python-version: "3.14"
                   extras: "dev,postgres,drf"
 
             - name: Ruff checks
-              uses: chrysa/github-actions/ruff-check@v1.8.0
+              uses: chrysa/github-actions/ruff-check@v1.8.1
               with:
                   python-version: "3.14"
                   latest-python: "3.14"
                   sources: "src/django_query_optimizer tests"
 
             - name: Mypy checks
-              uses: chrysa/github-actions/mypy-check@v1.8.0
+              uses: chrysa/github-actions/mypy-check@v1.8.1
               with:
                   python-version: "3.14"
                   latest-python: "3.14"
@@ -103,7 +103,7 @@ jobs:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
             - name: Setup environment
-              uses: chrysa/github-actions/tool-setup@v1.8.0
+              uses: chrysa/github-actions/tool-setup@v1.8.1
               with:
                   python-version: "3.14"
                   extras: "dev,postgres,drf"
@@ -124,7 +124,7 @@ jobs:
                   DJANGO_SETTINGS_MODULE: tests.settings
 
             - name: Upload SARIF to GitHub Code Scanning
-              uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
+              uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
               with:
                   sarif_file: query-results.sarif
                   category: django-query-optimizer
@@ -143,7 +143,7 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - uses: chrysa/github-actions/sonar-scan-python@v1.8.0
+            - uses: chrysa/github-actions/sonar-scan-python@v1.8.1
               with:
                   python-version: "3.14"
                   sonar-token: ${{ secrets.SONAR_TOKEN }}
