@@ -1,0 +1,45 @@
+{
+  "adrs": [
+    "ADR-0001-execute-wrapper-collection.md",
+    "README.md"
+  ],
+  "contracts": [
+    "standards"
+  ],
+  "ddd_level": "(not available)",
+  "dependencies": {
+    "python": [
+      "channels",
+      "daphne",
+      "django",
+      "django-stubs",
+      "djangorestframework",
+      "djangorestframework-stubs",
+      "factory-boy",
+      "mypy",
+      "psycopg2-binary",
+      "pytest",
+      "pytest-cov",
+      "pytest-django",
+      "ruff"
+    ]
+  },
+  "depends_on_shared_standards": true,
+  "description": "Intelligent ORM analysis and optimization platform for Django",
+  "entry_points": [],
+  "key_directories": [
+    ".claude",
+    ".github",
+    ".vscode",
+    "docs",
+    "examples",
+    "legal",
+    "scripts",
+    "src",
+    "standards",
+    "tests"
+  ],
+  "name": "django-query-optimizer",
+  "profiles": [],
+  "schema": "chrysa.context-map/1"
+}
