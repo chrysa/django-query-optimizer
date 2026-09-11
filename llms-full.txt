@@ -109,7 +109,6 @@ Intelligent ORM analysis and optimization platform for Django
     action-check.yml
     approved-label.yml
     auto-assign.yml
-    auto-update-pre-commit.yml
     ci.yml
     dependabot-auto-merge.yml
     detect-conflicts.yml
@@ -173,6 +172,7 @@ opencode.json
 primer.md
 pyproject.toml
 scripts/
+  gen_context_files.py
   quality_gate.py
 sonar-project.properties
 src/
@@ -296,6 +296,7 @@ examples/demo/demo_project/settings.py — Minimal Django settings for the djang
 examples/demo/demo_project/urls.py — URL configuration for the demo project.
 examples/demo/manage.py
 examples/demo/tests/test_query_budget.py — Demo of the django-query-optimizer test API.
+scripts/gen_context_files.py — Generate the standardised per-repo context files from the repo's own content.
 scripts/quality_gate.py
 src/django_query_optimizer/__init__.py — django-query-optimizer — Intelligent ORM analysis and optimization for Django.
 src/django_query_optimizer/_internal/__init__.py — Internal package — not part of the public API.
@@ -319,4 +320,3 @@ src/django_query_optimizer/migrations/__init__.py
 src/django_query_optimizer/recommendations/__init__.py — Recommendations package.
 src/django_query_optimizer/recommendations/base.py — Base recommendation data class.
 src/django_query_optimizer/regression/__init__.py — Regression detection utilities.
-src/django_query_optimizer/regression/detector.py — Regression detection — compare a current QueryScore against a saved baseline.
