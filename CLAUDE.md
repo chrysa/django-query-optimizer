@@ -136,6 +136,10 @@ Coverage threshold: **85%** (enforced by `pytest-cov` with `fail_under = 85`).
 
 - `dockerfile-multistage/SKILL.md` — 4-stage Python 3.14 containers (load when editing Dockerfile)
 
+- `detector-scaffold/SKILL.md` — scaffolds a new detector + test per the 5-step recipe (load when adding a detector)
+
+- `sarif-validate/SKILL.md` — validates SARIF output against schema + VS Code extension shape (user-invoked, pre-release only)
+
 Shared skills from `shared-standards/.claude/skills/`:
 
 - `ui-ux/SKILL.md` — UX/UI/ergonomics across ALL surfaces (web, CLI, VS Code, Discord, desktop, game, agent) + WCAG 2.1 AA + dark mode + i18n FR+EN (load when building any human-facing surface)
