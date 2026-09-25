@@ -34,7 +34,9 @@ Intelligent ORM analysis and optimization platform for Django
   hooks/
     check-no-env-files.cjs
     circuit-breaker.cjs
+    claude-config-drift.cjs
     frustration-detection.cjs
+    graphify-auto-update.cjs
     secret-scanner.cjs
     verifiable-thresholds.cjs
   memory/
@@ -64,6 +66,8 @@ Intelligent ORM analysis and optimization platform for Django
       SKILL.md
     council/
       SKILL.md
+    detector-scaffold/
+      SKILL.md
     dockerfile-multistage/
       SKILL.md
     error-handling/
@@ -80,6 +84,8 @@ Intelligent ORM analysis and optimization platform for Django
     implement/
       SKILL.md
     plan/
+      SKILL.md
+    sarif-validate/
       SKILL.md
     spec/
       SKILL.md
@@ -129,6 +135,7 @@ Intelligent ORM analysis and optimization platform for Django
 .vscode/
   extensions.json
 AGENTS.md
+ARCHITECTURE.md
 CHANGELOG.md
 CLAUDE.md
 CODEOWNERS
@@ -228,6 +235,7 @@ standards/
     README.md
     accessibility.md
     agents.md
+    ai-orchestration.md
     api.md
     architecture.md
     backend-python.md
