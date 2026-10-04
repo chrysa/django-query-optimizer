@@ -64,7 +64,8 @@ RUN pip install --no-cache-dir .
 
 USER appuser
 
-HEALTHCHECK CMD python -c "import django_query_optimizer; print('ok')" || exit 1
+# No HEALTHCHECK (CT-004): pure library image, not a running service (CMD prints the version and exits);
+# the former `python -c "import ..."` probe called the language runtime and checked nothing live.
 
 CMD ["python", "-c", "import django_query_optimizer; print(django_query_optimizer.__version__)"]
 
