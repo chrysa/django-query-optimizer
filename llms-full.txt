@@ -85,6 +85,8 @@ Intelligent ORM analysis and optimization platform for Django
       SKILL.md
     plan/
       SKILL.md
+    rollout-status/
+      SKILL.md
     sarif-validate/
       SKILL.md
     spec/
@@ -100,6 +102,7 @@ Intelligent ORM analysis and optimization platform for Django
   thresholds.json
 .dockerignore
 .editorconfig
+.env.example
 .gitattributes
 .github/
   CODEOWNERS
