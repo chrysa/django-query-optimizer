@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-query-optimizer"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "Intelligent ORM analysis and optimization platform for Django"
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 authors = [{ name = "chrysa", email = "greau.anthony+chrysa@gmail.com" }]
 keywords = [
     "django",
@@ -21,21 +21,23 @@ keywords = [
     "profiling",
 ]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
-    "Environment :: Web Environment",
-    "Framework :: Django",
-    "Framework :: Django :: 4.2",
+    "Development Status :: 3 - Alpha",
     "Framework :: Django :: 5.0",
     "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Environment :: Web Environment",
+    "Framework :: Django",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Debuggers",
     "Topic :: Database",
 ]
 
-dependencies = ["django>=6.0.7"]
+dependencies = ["django>=5.0,<7"]
 
 [project.optional-dependencies]
 postgres = ["psycopg2-binary>=2.9"]
