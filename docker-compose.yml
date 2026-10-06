@@ -18,6 +18,8 @@ services:
       args:
         APP_UID: "${UID:-1000}"
         APP_GID: "${GID:-1000}"
+        PYTHON_VERSION: "${PYTHON_VERSION:-3.14}"
+        DJANGO_VERSION: "${DJANGO_VERSION:-}"
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
