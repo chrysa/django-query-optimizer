@@ -1,5 +1,8 @@
 # ── Stage 1: deps — install production dependencies ───────────────────────────
-FROM python:3.14-slim AS deps
+# Overridable for the local compatibility matrix (`make docker-test-matrix`);
+# defaults keep CI parity (latest Python, latest Django).
+ARG PYTHON_VERSION=3.14
+FROM python:${PYTHON_VERSION}-slim AS deps
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -32,6 +35,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 RUN pip install --no-cache-dir -e ".[dev,postgres,drf]"
+
+# Pin a specific Django minor (e.g. 5.2) when DJANGO_VERSION is set.
+ARG DJANGO_VERSION=
+RUN if [ -n "$DJANGO_VERSION" ]; then pip install --no-cache-dir "django==${DJANGO_VERSION}.*"; fi
 
 COPY tests/ ./tests/
 
