@@ -144,6 +144,24 @@ Shared skills from `shared-standards/.claude/skills/`:
 
 - `ui-ux/SKILL.md` — UX/UI/ergonomics across ALL surfaces (web, CLI, VS Code, Discord, desktop, game, agent) + WCAG 2.1 AA + dark mode + i18n FR+EN (load when building any human-facing surface)
 
+---
+
+## Documentation map
+
+Root docs (generated 2026-09-25, evidence-tagged):
+
+- `README.md` — install, public API, config, testing recipe (product/overview).
+- `ARCHITECTURE.md` — purpose, stack, layout, entrypoints (French; see REVIEW C-2).
+- `REQUIREMENTS.md` — REQ-* matrix with code/test evidence and status.
+- `CONSTRAINTS.md` — runtime/build/dev-loop constraints (Py 3.14, Django ≥6.0.7, containers-only).
+- `DECISIONS.md` — ADR index; full ADRs in `docs/adr/`.
+- `TESTING.md` — test layout, `make` targets, coverage gate, `-p no:query_optimizer` caveat.
+- `SECURITY.md` — secret-scan result + attack-surface notes (owner-facing).
+- `GLOSSARY.md` — public API symbols + domain terms + related repos.
+- `ROADMAP.md` — phases 1a→5, open items.
+- `REVIEW.md` — contradictions, stale docs, documentation debt.
+- `CHANGELOG.md`, `CONTRIBUTING.md`, `AGENTS.md` — contributor/process docs.
+
 
 <!-- chrysa:standards:start · managed by distribute-standards.sh · DO NOT EDIT -->
 # chrysa — Transverse Standards (core)
