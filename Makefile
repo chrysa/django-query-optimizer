@@ -13,11 +13,15 @@ TESTS_DIR     = tests
 DC      := docker compose
 DC_RUN  := $(DC) run --rm
 
+# Compatibility matrix for `make docker-test-matrix`
+MATRIX_PYTHON ?= 3.13 3.14
+MATRIX_DJANGO ?= 5.2 6.0
+
 .DEFAULT_GOAL := help
 
 .PHONY: help install install-dev pre-commit pre-commit-update \
         lint format format-check typecheck lint-all \
-        test test-cov test-fast \
+        test test-cov test-fast docker-test docker-test-matrix \
         dev \
         build build-cache \
         docker-up docker-down docker-clean \
@@ -77,6 +81,14 @@ docker-test: ## Build and run tests via Docker (CI target)
 	@touch coverage.xml
 	$(DC) build test
 	$(DC_RUN) -T test
+
+docker-test-matrix: ## Run tests in Docker across Python x Django (override MATRIX_PYTHON / MATRIX_DJANGO)
+	@fail=0; for py in $(MATRIX_PYTHON); do for dj in $(MATRIX_DJANGO); do \
+		echo "=== Python $$py / Django $$dj ==="; \
+		rm -rf coverage.xml; touch coverage.xml; \
+		PYTHON_VERSION=$$py DJANGO_VERSION=$$dj $(DC) build test >/dev/null \
+		&& PYTHON_VERSION=$$py DJANGO_VERSION=$$dj $(DC_RUN) -T test || fail=1; \
+	done; done; exit $$fail
 
 test-fast: ## Run tests without coverage (fast, via Docker)
 	$(DC_RUN) test sh -c "pytest $(TESTS_DIR) -v"
