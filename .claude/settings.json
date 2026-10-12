@@ -48,6 +48,18 @@
             "timeout": 10000
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-compact.sh"
+            ],
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -93,6 +105,19 @@
             "type": "command"
           }
         ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/read_guard.py"
+            ],
+            "timeout": 10
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -111,6 +136,20 @@
           {
             "type": "command",
             "command": "sh -c 'f=\"$CLAUDE_PROJECT_DIR/.claude/ape/ape_hook.py\"; s=\"$CLAUDE_PROJECT_DIR/.claude/ape/ape-transform-v2.md\"; [ ! -f \"$f\" ] || python3 \"$f\" --spec \"$s\"'"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-context.sh"
+            ],
+            "timeout": 10
           }
         ]
       }
@@ -201,7 +240,11 @@
       "Bash(rtk docker push *)",
       "Bash(rtk npm publish *)",
       "Bash(rtk twine upload *)",
-      "Bash(rtk rm -rf *)"
+      "Bash(rtk rm -rf *)",
+      "Bash(docker compose up *)",
+      "Bash(docker compose down *)",
+      "Bash(rtk docker compose up *)",
+      "Bash(rtk docker compose down *)"
     ],
     "deny": [
       "Read(./.env)",
