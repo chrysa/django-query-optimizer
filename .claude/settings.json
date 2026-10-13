@@ -192,7 +192,7 @@
       "Bash(docker compose up *)",
       "Bash(docker compose down *)",
       "Bash(rtk gh pr list *)",
-      "Bash(rtk gh issue list *)",
+      "Bash(gh issue list *)",
       "Bash(rtk gh run list *)",
       "Bash(rtk gh run view *)"
     ],
