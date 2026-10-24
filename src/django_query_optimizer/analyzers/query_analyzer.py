@@ -30,7 +30,7 @@ Example::
         list(MyModel.objects.all())
 
     for rec in QueryAnalyzer(col.queries).analyze():
-        print(rec.severity, rec.message)
+        logger.info("%s %s", rec.severity, rec.message)
 """
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ class QueryAnalyzer:
             list(Order.objects.all())
         analyzer = QueryAnalyzer(collector.queries)
         for rec in analyzer.analyze():
-            print(rec.severity, rec.message)
+            logger.info("%s %s", rec.severity, rec.message)
     """
 
     def __init__(self, queries: list[CapturedQuery]) -> None:
@@ -76,9 +76,7 @@ class QueryAnalyzer:
         # not surface as two overlapping recommendations.
         detector = NplusOneDetector()
         recommendations.extend(detector.detect(self._queries))
-        recommendations.extend(
-            self._detect_duplicate_queries(exclude=detector.flagged_patterns(self._queries))
-        )
+        recommendations.extend(self._detect_duplicate_queries(exclude=detector.flagged_patterns(self._queries)))
         recommendations.extend(SelectRelatedDetector().detect(self._queries))
         return sorted(recommendations)
 
@@ -91,7 +89,7 @@ class QueryAnalyzer:
 
             analyzer = QueryAnalyzer(collector.queries)
             score = analyzer.score()
-            print(score.summary)  # "Score 85/100 (B) — 1 issue(s): 1 high"
+            score.summary  # "Score 85/100 (B) — 1 issue(s): 1 high"
         """
         return QueryScorer(self.analyze()).compute()
 
@@ -112,9 +110,7 @@ class QueryAnalyzer:
             if query.duration_ms >= SLOW_QUERY_THRESHOLD_MS
         ]
 
-    def _detect_duplicate_queries(
-        self, exclude: frozenset[str] = frozenset()
-    ) -> list[ORMRecommendation]:
+    def _detect_duplicate_queries(self, exclude: frozenset[str] = frozenset()) -> list[ORMRecommendation]:
         """Detect queries whose SQL is executed more than once.
 
         SQL whose normalised pattern is in *exclude* is skipped: it has already

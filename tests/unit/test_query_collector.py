@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import traceback
-from unittest.mock import MagicMock, patch
 
 import pytest
+from pytest_mock import MockerFixture
 
 from django_query_optimizer.collectors.query_collector import (
     CapturedQuery,
@@ -51,18 +51,15 @@ class TestQueryCollector:
         finally:
             mod._REGISTERED = original
 
-    def test_context_manager_adds_and_removes_wrapper(self) -> None:
-        mock_connection = MagicMock()
+    def test_context_manager_adds_and_removes_wrapper(self, mocker: MockerFixture) -> None:
+        mock_connection = mocker.MagicMock()
         mock_connection.execute_wrappers = []
 
-        with patch(
-            "django_query_optimizer.collectors.query_collector.connection",
-            mock_connection,
-        ):
-            collector = QueryCollector()
-            with collector:
-                assert len(mock_connection.execute_wrappers) == 1
-            assert len(mock_connection.execute_wrappers) == 0
+        mocker.patch("django_query_optimizer.collectors.query_collector.connection", mock_connection)
+        collector = QueryCollector()
+        with collector:
+            assert len(mock_connection.execute_wrappers) == 1
+        assert len(mock_connection.execute_wrappers) == 0
 
     @pytest.mark.parametrize(
         "duration_ms,expected_duration",
@@ -72,17 +69,19 @@ class TestQueryCollector:
             (999.999, 999.999),
         ],
     )
-    def test_capture_records_duration(self, duration_ms: float, expected_duration: float) -> None:
+    def test_capture_records_duration(
+        self, mocker: MockerFixture, duration_ms: float, expected_duration: float
+    ) -> None:
         collector = QueryCollector()
 
         def fake_execute(*args: object, **kwargs: object) -> None:
             return None
 
-        with patch(
+        mocker.patch(
             "django_query_optimizer.collectors.query_collector.time.perf_counter",
             side_effect=[0.0, duration_ms / 1_000],
-        ):
-            collector._capture(fake_execute, "SELECT 1", [], False, {})
+        )
+        collector._capture(fake_execute, "SELECT 1", [], False, {})
 
         assert collector.queries[0].duration_ms == pytest.approx(expected_duration, abs=0.01)
 

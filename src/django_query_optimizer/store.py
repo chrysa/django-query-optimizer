@@ -21,7 +21,7 @@ Example::
         recommendations=(),
     )
     QueryStore.get().push(record)
-    print(QueryStore.get().summary())
+    QueryStore.get().summary()
 """
 
 from __future__ import annotations
@@ -35,6 +35,7 @@ from typing import Any, Final
 from django_query_optimizer.recommendations.base import ORMRecommendation
 
 MAX_REQUESTS: Final[int] = 500
+SLOW_REQUEST_MS: Final[float] = 500.0
 
 
 @dataclass(frozen=True)
@@ -145,7 +146,7 @@ class QueryStore:
             }
 
         total_queries = sum(r.query_count for r in records)
-        slow_requests = [r for r in records if r.total_duration_ms >= 500.0]
+        slow_requests = [r for r in records if r.total_duration_ms >= SLOW_REQUEST_MS]
 
         # Aggregate per endpoint in a single pass.
         ep_data: dict[str, dict[str, Any]] = defaultdict(lambda: {"request_count": 0, "total_queries": 0})

@@ -89,3 +89,6 @@ Thumbs.db
 *.key
 secrets/
 CLAUDE.local.md
+
+# Local SQLite databases (binary; also breaks text-based pre-commit hooks)
+*.sqlite3

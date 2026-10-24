@@ -23,7 +23,7 @@ Example::
             raise SystemExit(f"Query regression detected: {result.message}")
     else:
         detector.save_baseline(current, baseline_path)
-        print(f"Baseline saved: {current.summary}")
+        logger.info(f"Baseline saved: {current.summary}")
 
 Constants
 ---------

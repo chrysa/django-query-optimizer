@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from django_query_optimizer.analyzers.query_analyzer import (
-    DUPLICATE_MIN_COUNT,
     SLOW_QUERY_THRESHOLD_MS,
     QueryAnalyzer,
 )
@@ -78,10 +77,7 @@ class TestQueryAnalyzerDuplicates:
 
     def test_duplicate_count_in_message(self) -> None:
         count = 5
-        queries = [
-            _make_query("SELECT 1", python_file="v.py", python_line=10 + i)
-            for i in range(count)
-        ]
+        queries = [_make_query("SELECT 1", python_file="v.py", python_line=10 + i) for i in range(count)]
         analyzer = QueryAnalyzer(queries)
         dups = [r for r in analyzer.analyze() if r.issue_type == "duplicate_query"]
         assert str(count) in dups[0].message

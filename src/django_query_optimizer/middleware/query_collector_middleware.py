@@ -31,7 +31,7 @@ After the response is built the middleware:
        # In a signal / admin view:
        collector = getattr(request, "query_collector", None)
        if collector:
-           print(f"{collector.count} queries for {request.path}")
+           logger.info(f"{collector.count} queries for {request.path}")
 
 .. warning::
    Do **not** add this middleware in production settings.
