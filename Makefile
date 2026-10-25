@@ -79,13 +79,15 @@ docker-test: ## Build and run tests via Docker (CI target)
 	@# so this also runs in CI / non-interactive contexts.
 	@rm -rf coverage.xml
 	@touch coverage.xml
+	@# The container user is not the runner user: let it write the bind-mounted report.
+	@chmod 666 coverage.xml
 	$(DC) build test
 	$(DC_RUN) -T test
 
 docker-test-matrix: ## Run tests in Docker across Python x Django (override MATRIX_PYTHON / MATRIX_DJANGO)
 	@fail=0; for py in $(MATRIX_PYTHON); do for dj in $(MATRIX_DJANGO); do \
 		echo "=== Python $$py / Django $$dj ==="; \
-		rm -rf coverage.xml; touch coverage.xml; \
+		rm -rf coverage.xml; touch coverage.xml; chmod 666 coverage.xml; \
 		PYTHON_VERSION=$$py DJANGO_VERSION=$$dj $(DC) build test >/dev/null \
 		&& PYTHON_VERSION=$$py DJANGO_VERSION=$$dj $(DC_RUN) -T test || fail=1; \
 	done; done; exit $$fail
