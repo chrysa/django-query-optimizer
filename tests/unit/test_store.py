@@ -226,7 +226,7 @@ class TestQueryStoreThreadSafety:
             try:
                 for _ in range(n_records_per_thread):
                     store_big.push(_make_record())
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 errors.append(exc)
 
         threads = [threading.Thread(target=push_many) for _ in range(n_threads)]

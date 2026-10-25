@@ -27,8 +27,8 @@ Example::
         python_file="views/orders.py",
         python_line=47,
     )
-    print(rec.severity)          # "high"
-    print(rec.severity == "high") # True
+    rec.severity          # "high"
+    rec.severity == "high" # True
 """
 
 from __future__ import annotations

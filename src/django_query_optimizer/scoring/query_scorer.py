@@ -43,9 +43,9 @@ Example::
                           message="...", suggestion="..."),
     ]
     score = QueryScorer(recs).compute()
-    print(score.value)   # 77
-    print(score.grade)   # "B"
-    print(score.summary) # "Score 77/100 (B) — 2 issue(s): 1 high, 1 medium"
+    score.value   # 77
+    score.grade   # "B"
+    score.summary # "Score 77/100 (B) — 2 issue(s): 1 high, 1 medium"
 """
 
 from __future__ import annotations

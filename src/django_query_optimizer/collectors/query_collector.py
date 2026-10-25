@@ -23,9 +23,9 @@ Example::
     with QueryCollector() as col:
         list(MyModel.objects.filter(active=True))
 
-    print(f"{col.count} queries captured")
+    logger.info(f"{col.count} queries captured")
     for q in col.queries:
-        print(f"  {q.duration_ms:.2f} ms — {q.sql[:80]}")
+        logger.info(f"  {q.duration_ms:.2f} ms — {q.sql[:80]}")
 """
 
 from __future__ import annotations
@@ -90,7 +90,7 @@ class QueryCollector:
         collector = QueryCollector()
         with collector:
             MyModel.objects.all()
-        print(collector.queries)
+        collector.queries
     """
 
     queries: list[CapturedQuery] = field(default_factory=list)

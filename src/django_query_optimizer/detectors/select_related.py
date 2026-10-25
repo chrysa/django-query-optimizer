@@ -31,7 +31,7 @@ Example::
 
     recs = SelectRelatedDetector().detect(queries)
     for rec in recs:
-        print(rec.suggestion)  # "Add select_related('author') to your queryset."
+        rec.suggestion  # "Add select_related('author') to your queryset."
 """
 
 from __future__ import annotations
@@ -45,6 +45,10 @@ from django_query_optimizer.recommendations.base import ORMRecommendation, Sever
 
 # Minimum count of FK-lookup repetitions before flagging
 SELECT_RELATED_MIN_COUNT: int = 2
+# Repetition count at which a select_related finding escalates from MEDIUM to HIGH.
+SELECT_RELATED_HIGH_COUNT: int = 10
+# A table name split once on '_' yields exactly an app prefix and a model name.
+_APP_PREFIX_PARTS: int = 2
 
 # Matches: SELECT … FROM <table> WHERE <col> = ? (normalised SQL)
 # We capture <table> and <col> to identify the related model and PK column.
@@ -78,7 +82,7 @@ def _table_to_field(table: str) -> str:
     lower = table.lower()
     # Strip a single «app_» prefix segment if the result is a single word.
     parts = lower.split("_", 1)
-    if len(parts) == 2 and parts[1] and "_" not in parts[1]:
+    if len(parts) == _APP_PREFIX_PARTS and parts[1] and "_" not in parts[1]:
         return parts[1]
     return lower
 
@@ -124,7 +128,7 @@ class SelectRelatedDetector:
             table = match.group("table")
             field_hint = _table_to_field(table)
 
-            severity = Severity.HIGH if count >= 10 else Severity.MEDIUM
+            severity = Severity.HIGH if count >= SELECT_RELATED_HIGH_COUNT else Severity.MEDIUM
             recommendations.append(
                 ORMRecommendation(
                     issue_type="missing_select_related",

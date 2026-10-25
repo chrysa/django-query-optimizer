@@ -93,9 +93,7 @@ class TestNormalizeSql:
         assert normalize_sql(q1) != normalize_sql(q2)
 
     def test_in_list_collapsed_to_single_placeholder(self) -> None:
-        assert normalize_sql("SELECT * FROM t WHERE id IN (1, 2, 3)") == (
-            "SELECT * FROM T WHERE ID IN (?)"
-        )
+        assert normalize_sql("SELECT * FROM t WHERE id IN (1, 2, 3)") == ("SELECT * FROM T WHERE ID IN (?)")
 
     def test_in_lists_of_different_arity_normalise_equal(self) -> None:
         # A batched IN lookup issued once per loop with a varying number of ids
@@ -105,9 +103,7 @@ class TestNormalizeSql:
         assert normalize_sql(q1) == normalize_sql(q2)
 
     def test_single_element_in_list_preserved(self) -> None:
-        assert normalize_sql("SELECT * FROM t WHERE id IN (1)") == (
-            "SELECT * FROM T WHERE ID IN (?)"
-        )
+        assert normalize_sql("SELECT * FROM t WHERE id IN (1)") == ("SELECT * FROM T WHERE ID IN (?)")
 
 
 # ── NplusOneDetector — no recommendation cases ───────────────────────────────
@@ -231,7 +227,8 @@ class TestNplusOneDetectorMultipleGroups:
         queries = [
             _make_query("SELECT * FROM user WHERE id = 1", python_line=5),
             _make_query("SELECT * FROM user WHERE id = 2", python_line=6),
-        ] + _n_plus_one_queries(N_PLUS_ONE_MIN_COUNT, python_line=20)
+            *_n_plus_one_queries(N_PLUS_ONE_MIN_COUNT, python_line=20),
+        ]
         recs = NplusOneDetector().detect(queries)
         # Only the group at python_line=20 is flagged (line 5 and 6 differ)
         assert len(recs) == 1
