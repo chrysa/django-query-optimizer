@@ -21,6 +21,7 @@
       "pytest",
       "pytest-cov",
       "pytest-django",
+      "pytest-mock",
       "ruff"
     ]
   },
