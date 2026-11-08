@@ -179,8 +179,3 @@ make install-dev    # local dev install
 ### Local AI orchestration & local-first · `standards/rules/ai-orchestration.md`
 - AI orchestration & local-first
 <!-- chrysa:standards-agents:end -->
-
-## Product design contract
-
-Before UI, component, style, navigation or asset work, read [DESIGN.md](DESIGN.md).
-Keep it aligned with implementation and verification evidence; load it on demand.

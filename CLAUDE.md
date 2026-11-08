@@ -129,8 +129,3 @@ Coverage threshold: **85%** (enforced by `pytest-cov` with `fail_under = 85`).
 ## Conventions
 
 Follow the /conventions skill.
-
-## Product design contract
-
-Before UI, component, style, navigation or asset work, read [DESIGN.md](DESIGN.md).
-Keep it aligned with implementation and verification evidence; load it on demand.
