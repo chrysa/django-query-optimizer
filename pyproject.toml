@@ -161,12 +161,14 @@ select = [
     "RUF059",
     "RUF100",
     "PLR2004",
+    "T100",
+    "LOG015",
 ]
 ignore = []
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101", "ANN"]
 "src/django_query_optimizer/testing/pytest_plugin.py" = ["ANN401"]
-"**/tests/**" = ["PLR2004"]
-"**/test_*.py" = ["PLR2004"]
-"**/conftest.py" = ["PLR2004"]
+"**/tests/**" = ["PLR2004", "T203"]
+"**/test_*.py" = ["PLR2004", "T203"]
+"**/conftest.py" = ["PLR2004", "T203"]
